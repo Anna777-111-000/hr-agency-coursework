@@ -1,42 +1,77 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Главная страница{% endblock %}
+{% block title %}Главная - HR Agency{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 text-center">
-        <h1 class="display-4 mb-4">Добро пожаловать в HR Agency</h1>
-        <p class="lead">Система для эффективного подбора кандидатов</p>
+<div class="container mt-4">
+    {% if user.is_authenticated %}
+    <!-- Главная страница ДЛЯ АВТОРИЗОВАННЫХ пользователей -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 mb-3">HR Agency</h1>
+        <p class="text-muted welcome-text">Добро пожаловать, {{ user.username }}</p>
+    </div>
 
-        <div class="row mt-5">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Кандидаты</h5>
-                        <p class="card-text">Просмотр и управление кандидатами</p>
-                        <a href="#" class="btn btn-primary">Скоро будет</a>  <!-- ← ИЗМЕНИЛИ -->
-                    </div>
+    <!-- Быстрый доступ к основным разделам -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title mb-3">👥 Кандидаты</h5>
+                    <p class="card-text text-muted small mb-4">Управление базой кандидатов, поиск и фильтрация</p>
+                    <a href="{% url 'candidate_list' %}" class="btn btn-primary">Перейти</a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Вакансии</h5>
-                        <p class="card-text">Управление открытыми вакансиями</p>
-                        <a href="#" class="btn btn-primary">Скоро будет</a>  <!-- ← ИЗМЕНИЛИ -->
-                    </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title mb-3">💼 Вакансии</h5>
+                    <p class="card-text text-muted small mb-4">Создание и управление открытыми вакансиями</p>
+                    <a href="{% url 'vacancy_list' %}" class="btn btn-primary">Перейти</a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Статистика</h5>
-                        <p class="card-text">Аналитика и отчеты</p>
-                        <a href="#" class="btn btn-primary">Скоро будет</a>  <!-- ← ИЗМЕНИЛИ -->
-                    </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title mb-3">📊 Статистика</h5>
+                    <p class="card-text text-muted small mb-4">Детальная аналитика и отчеты по подбору</p>
+                    <a href="{% url 'statistics' %}" class="btn btn-primary">Перейти</a>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Краткая статистика -->
+    <div class="quick-stats">
+        <div class="row text-center">
+            <div class="col-md-4 stat-item">
+                <span class="stat-number">{{ candidates_count|default:"0" }}</span>
+                <div class="stat-label">Кандидатов в базе</div>
+            </div>
+            <div class="col-md-4 stat-item">
+                <span class="stat-number">{{ vacancies_count|default:"0" }}</span>
+                <div class="stat-label">Активных вакансий</div>
+            </div>
+            <div class="col-md-4 stat-item">
+                <span class="stat-number">{{ responses_count|default:"0" }}</span>
+                <div class="stat-label">Всего откликов</div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Главная страница ДЛЯ НЕАВТОРИЗОВАННЫХ пользователей -->
+    <div class="jumbotron bg-light p-5 rounded text-center">
+        <h1 class="display-4">Добро пожаловать в HR Agency</h1>
+        <p class="lead">Система для эффективного подбора кандидатов</p>
+        <hr class="my-4">
+        <p>Для доступа к системе требуется авторизация.</p>
+        <div class="mt-4">
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg me-3">Войти в систему</a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

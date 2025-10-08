@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Анкета сотрудника - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6">АНКЕТА СОТРУДНИКА</h1>
+        <a href="{% url 'personnel_form_list' %}" class="btn btn-outline-secondary">
+            Список анкет
+        </a>
+    </div>
+
+    <div class="card border-dark">
+        <div class="card-header bg-dark text-white text-center">
+            <h5 class="mb-0">ЛИЧНАЯ КАРТОЧКА</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <!-- Основная информация -->
+                <div class="section-border mb-4">
+                    <h6 class="section-title">1. ОСНОВНАЯ ИНФОРМАЦИЯ</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label required">Фамилия</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Имя</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Отчество</label>
+                            {{ form.patronymic }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Дата рождения</label>
+                            {{ form.birth_date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Место рождения</label>
+                            {{ form.birth_place }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label required">Гражданство</label>
+                            {{ form.citizenship }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Контактная информация -->
+                <div class="section-border mb-4">
+                    <h6 class="section-title">2. КОНТАКТНАЯ ИНФОРМАЦИЯ</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label required">Адрес проживания</label>
+                            {{ form.address }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Контактный телефон</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Электронная почта</label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Образование -->
+                <div class="section-border mb-4">
+                    <h6 class="section-title">3. ОБРАЗОВАНИЕ</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Образование</label>
+                            {{ form.education }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Год окончания</label>
+                            {{ form.graduation_year }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label required">Учебное заведение</label>
+                            {{ form.institution }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label required">Специальность по диплому</label>
+                            {{ form.specialty }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Паспортные данные -->
+                <div class="section-border mb-4">
+                    <h6 class="section-title">4. ПАСПОРТНЫЕ ДАННЫЕ</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label required">Серия</label>
+                            {{ form.passport_series }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label required">Номер</label>
+                            {{ form.passport_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Дата выдачи</label>
+                            {{ form.passport_issue_date }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label required">Кем выдан</label>
+                            {{ form.passport_issued_by }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Код подразделения</label>
+                            {{ form.passport_department_code }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Дополнительные разделы... -->
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Сохранить анкету
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.section-border {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.section-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+.required::after {
+    content: " *";
+    color: #e74c3c;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.card {
+    border: 2px solid #2c3e50 !important;
+}
+</style>
+{% endblock %}

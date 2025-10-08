@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>📊 Статистика</h1>
+    <p class="lead">Аналитика и отчеты по подбору персонала</p>
+
+    <!-- Основные метрики -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Кандидатов</h5>
+                    <p class="card-text display-4">{{ candidates_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Вакансий</h5>
+                    <p class="card-text display-4">{{ vacancies_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Откликов</h5>
+                    <p class="card-text display-4">{{ responses_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Статистика откликов -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📈 Статусы откликов</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>На рассмотрении:</span>
+                        <span class="badge bg-warning">{{ pending_responses }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Одобрено:</span>
+                        <span class="badge bg-success">{{ approved_responses }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Отклонено:</span>
+                        <span class="badge bg-danger">{{ rejected_responses }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика вакансий -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>💼 Статусы вакансий</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Открытые:</span>
+                        <span class="badge bg-success">{{ open_vacancies }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Закрытые:</span>
+                        <span class="badge bg-secondary">{{ closed_vacancies }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Черновики:</span>
+                        <span class="badge bg-warning">{{ draft_vacancies }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Популярные навыки -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🔧 Популярные навыки</h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_skills %}
+                        {% for skill in popular_skills %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ skill.name }}</span>
+                            <div>
+                                <span class="badge bg-primary me-1">{{ skill.candidate_count }} кандидатов</span>
+                                <span class="badge bg-info">{{ skill.vacancy_count }} вакансий</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Данные о навыках отсутствуют</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Последние отклики -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🕐 Последние отклики</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_applications %}
+                        {% for application in recent_applications %}
+                        <div class="mb-3 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ application.candidate.first_name }} {{ application.candidate.last_name }}</strong>
+                                <span class="badge
+                                    {% if application.status == 'approved' %}bg-success
+                                    {% elif application.status == 'rejected' %}bg-danger
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </div>
+                            <small class="text-muted">на {{ application.vacancy.title }}</small><br>
+                            <small>{{ application.applied_date|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Нет откликов</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

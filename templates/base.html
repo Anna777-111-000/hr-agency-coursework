@@ -5,19 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Кадровое агентство{% endblock %}</title>
 
+    <!-- Загрузка статических файлов -->
+    {% load static %}
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Наши стили -->
-    <style>
-        .navbar-brand {
-            font-weight: bold;
-        }
-        .main-content {
-            min-height: 80vh;
-            padding: 20px 0;
-        }
-    </style>
+    <!-- Наш кастомный CSS -->
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
 </head>
 <body>
     <!-- Навигационная панель -->
@@ -25,22 +20,58 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">HR Agency</a>
 
-            <div class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                    <span class="navbar-text me-3">Привет, {{ user.username }}!</span>
-                    <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
-                {% else %}
-                    <a class="nav-link" href="{% url 'login' %}">Войти</a>
-                {% endif %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'candidate_list' %}">Кандидаты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'vacancy_list' %}">Вакансии</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'statistics' %}">Статистика</a>
+                    </li>
+                </ul>
+
+                <div class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <span class="navbar-text me-3">Привет, {{ user.username }}!</span>
+                        <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                    {% else %}
+                        <a class="nav-link" href="{% url 'login' %}">Войти</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- Кнопки навигации - теперь они будут хорошо видны -->
+    <div class="container mt-3">
+        {% block back_button %}
+        {% if not request.path == '/' %}
+        <div class="d-flex gap-2">
+            <button onclick="history.back()" class="btn btn-outline-secondary">
+                ← Назад
+            </button>
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                На главную
+            </a>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </div>
 
     <!-- Основное содержимое -->
     <main class="main-content">
         <div class="container">
             {% block content %}
-            <!-- Сюда будет подставляться содержимое конкретных страниц -->
             {% endblock %}
         </div>
     </main>

@@ -1,0 +1,338 @@
+/* static/css/custom.css */
+
+/* Переменные цветов - сделаем более мягкими */
+:root {
+    --primary-color: #34495e;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --light-bg: #f8f9fa;
+    --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    --border-radius: 12px;
+}
+
+/* Общие стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.main-content {
+    background: white;
+    border-radius: var(--border-radius);
+    margin: 20px auto;
+    box-shadow: var(--card-shadow);
+    min-height: calc(100vh - 140px);
+    max-width: 1200px;
+}
+
+/* Навигация */
+.navbar {
+    background: var(--primary-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: white !important;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: white !important;
+}
+
+/* Кнопки навигации (назад/на главную) */
+.container.mt-3 {
+    background: white;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin: 10px auto;
+    max-width: 1200px;
+    box-shadow: var(--card-shadow);
+}
+
+.btn-outline-secondary, .btn-outline-primary {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+/* Карточки на главной */
+.dashboard-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
+    border-color: var(--secondary-color);
+}
+
+.dashboard-card .card-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+}
+
+.dashboard-card .card-text {
+    color: #6c757d;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.dashboard-card .btn {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.dashboard-card .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* Статистика на главной */
+.quick-stats {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* Заголовки */
+.display-5 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.text-muted.welcome-text {
+    color: #6c757d !important;
+    font-size: 1.1rem;
+}
+
+/* Стили для страниц контента (кандидаты, вакансии, статистика) */
+.container.mt-4 {
+    padding: 30px;
+}
+
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--hover-shadow);
+}
+
+.card-header {
+    background: var(--primary-color);
+    color: white;
+    border-bottom: none;
+    font-weight: 600;
+}
+
+/* Стили для таблиц */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Стили для страницы статистики */
+.bg-primary { background-color: var(--secondary-color) !important; }
+.bg-success { background-color: var(--success-color) !important; }
+.bg-warning { background-color: var(--warning-color) !important; }
+
+/* Бейджи */
+.badge {
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* Формы */
+.form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Футер */
+footer {
+    margin-top: 50px;
+    background: var(--primary-color) !important;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.dashboard-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.dashboard-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .main-content {
+        margin: 10px;
+        border-radius: 10px;
+    }
+
+    .container.mt-4 {
+        padding: 20px;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .display-5 {
+        font-size: 2rem;
+    }
+    /* Стили для форм по ГОСТ */
+.section-border {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 20px;
+    background: #f8f9fa;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+    font-size: 1.1rem;
+}
+
+.required::after {
+    content: " *";
+    color: #e74c3c;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.gost-card {
+    border: 2px solid #2c3e50 !important;
+    border-radius: 4px;
+}
+
+.gost-header {
+    background: #2c3e50 !important;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    padding: 15px;
+}
+
+.table-gost {
+    border: 1px solid #2c3e50;
+    font-size: 0.9rem;
+}
+
+.table-gost th {
+    background: #34495e;
+    color: white;
+    border: 1px solid #2c3e50;
+    padding: 10px;
+    text-align: center;
+}
+
+.table-gost td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    vertical-align: middle;
+
+
+}
+}
+

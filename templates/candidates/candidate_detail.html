@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ candidate.first_name }} {{ candidate.last_name }} - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Кнопки навигации -->
+    <div class="d-flex gap-2 mb-4">
+        <a href="{% url 'candidate_list' %}" class="btn btn-outline-secondary btn-sm">
+            ← К списку кандидатов
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">
+            На главную
+        </a>
+    </div>
+
+    <!-- Карточка кандидата -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{ candidate.first_name }} {{ candidate.last_name }} {{ candidate.patronymic }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Контактная информация</h5>
+                    <p><strong>Email:</strong> {{ candidate.email }}</p>
+                    <p><strong>Телефон:</strong> {{ candidate.phone }}</p>
+
+                    <h5 class="mt-4">Профессиональная информация</h5>
+                    <p><strong>Опыт работы:</strong> {{ candidate.experience_years }} лет</p>
+                    {% if candidate.age %}
+                    <p><strong>Возраст:</strong> {{ candidate.age }} лет</p>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                    <h5>Навыки</h5>
+                    {% if candidate.skills.all %}
+                        {% for skill in candidate.skills.all %}
+                        <span class="badge bg-primary me-1 mb-2">{{ skill.name }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Навыки не указаны</p>
+                    {% endif %}
+
+                    {% if candidate.resume %}
+                    <h5 class="mt-4">Резюме</h5>
+                    <a href="{{ candidate.resume.url }}" class="btn btn-outline-success btn-sm" target="_blank">
+                        📄 Скачать резюме
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Отклики кандидата -->
+            <div class="mt-4">
+                <h5>История откликов</h5>
+                {% if candidate.applications.all %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Вакансия</th>
+                                <th>Статус</th>
+                                <th>Дата отклика</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in candidate.applications.all %}
+                            <tr>
+                                <td>{{ application.vacancy.title }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if application.status == 'approved' %}bg-success
+                                        {% elif application.status == 'rejected' %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ application.applied_date|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">Пока нет откликов</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-footer text-muted">
+            <small>Добавлен: {{ candidate.created_at|date:"d.m.Y H:i" }} | Обновлен: {{ candidate.updated_at|date:"d.m.Y H:i" }}</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

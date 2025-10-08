@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Вакансии - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Вакансии</h1>
+    <p class="lead">Управление открытыми вакансиями</p>
+
+    <div class="row">
+        {% for vacancy in vacancies %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ vacancy.title }}</h5>
+                    <p class="card-text">{{ vacancy.description|truncatewords:30 }}</p>
+                    {% if vacancy.salary %}
+                    <p class="text-success"><strong>Зарплата: {{ vacancy.salary }} руб.</strong></p>
+                    {% endif %}
+                    <p class="text-muted">Статус: {{ vacancy.get_status_display }}</p>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Создана: {{ vacancy.created_at|date:"d.m.Y" }}</small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Пока нет активных вакансий
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
