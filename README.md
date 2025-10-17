@@ -18,7 +18,7 @@
 
 1. Клонировать репозиторий
 2. Создать виртуальное окружение: `python -m venv venv`
-3. Активировать окружение: `source venv/bin/activate`
+3. Активировать окружение: `source venv/bin/activate` / `venv\Scripts\activate`
 4. Установить зависимости: `pip install -r requirements.txt`
 5. Если зависимости не установились, выполнить: `pip install django django-crispy-forms pillow crispy_bootstrap5`
 6. Выполнить миграции: `python manage.py migrate`
