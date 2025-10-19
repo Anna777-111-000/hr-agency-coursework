@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Административная панель{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1>⚙️ Административная панель</h1>
+
+    <!-- Статистика -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h4>{{ users.count }}</h4>
+                    <p>Всего пользователей</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h4>{{ admins_count }}</h4>
+                    <p>Администраторов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h4>{{ managers_count }}</h4>
+                    <p>Менеджеров</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h4>{{ recruiters_count }}</h4>
+                    <p>Рекрутеров</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрое меню -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>👥 Управление пользователями</h5>
+                </div>
+                <div class="card-body">
+                    <p>Добавление и управление пользователями системы</p>
+                    <a href="{% url 'user_management' %}" class="btn btn-primary">Перейти</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>📊 Системная аналитика</h5>
+                </div>
+                <div class="card-body">
+                    <p>Статистика и отчеты по системе</p>
+                    <a href="{% url 'candidate_analytics' %}" class="btn btn-success">Перейти</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5>🚀 Быстрое создание</h5>
+                </div>
+                <div class="card-body">
+                    <p>Быстро добавить нового пользователя</p>
+                    <a href="{% url 'create_user' %}" class="btn btn-warning">Создать пользователя</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

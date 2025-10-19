@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ candidate.last_name }} {{ candidate.first_name }} - Рекрутер{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'candidate_list' %}">Кандидаты</a></li>
+            <li class="breadcrumb-item active">{{ candidate.last_name }} {{ candidate.first_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>{{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}</h4>
+                    <small>Уровень доступа: Базовый (Рекрутер)</small>
+                </div>
+                <div class="card-body">
+
+                    <!-- Контактная информация -->
+                    <h5>📞 Контактная информация</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Email:</strong><br>{{ candidate.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Телефон:</strong><br>{{ candidate.phone }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Профессиональная информация -->
+                    <h5 class="mt-4">💼 Профессиональная информация</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Опыт работы:</strong><br>{{ candidate.work_experience_total }} лет</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Образование:</strong><br>{{ candidate.get_education_display }}</p>
+                        </div>
+                    </div>
+                    <p><strong>Специальность:</strong><br>{{ candidate.specialty }}</p>
+
+                    <!-- Учебное заведение -->
+                    <p><strong>Учебное заведение:</strong><br>{{ candidate.institution }}</p>
+                    <p><strong>Год окончания:</strong> {{ candidate.graduation_year }}</p>
+
+                </div>
+                <div class="card-footer text-muted">
+                    <small>Добавлен: {{ candidate.created_at|date:"d.m.Y H:i" }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6>🔐 Информация о доступе</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Ваша роль:</strong> Рекрутер</p>
+                    <p><strong>Уровень доступа:</strong> Базовый</p>
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <strong>Доступно:</strong> Контакты, образование, опыт работы<br>
+                            <strong>Скрыто:</strong> Паспортные данные, адрес, ИНН/СНИЛС
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

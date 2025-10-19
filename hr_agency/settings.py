@@ -121,11 +121,11 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Указываем Django использовать нашу модель пользователя
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.User'
 
 # Настройка bootstrap5
-CRISPY_ALLOWED_TEMPLATE = "bootstrap5"
-CRISPY_TEMPLETE_PACK = "bootstrap5"
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # перенапрвление пользователя после входа
 LOGIN_REDIRECT_URL = 'home'

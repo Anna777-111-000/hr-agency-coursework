@@ -46,9 +46,9 @@ class Application(models.Model):
         return f"{self.candidate} -> {self.vacancy} ({self.status})"
 
 
-# НОВАЯ МОДЕЛЬ ДЛЯ ФОРМЫ КАДРОВ - ДОБАВЛЯЕМ В КОНЕЦ ФАЙЛА
+# форма кандидатов
 class PersonnelForm(models.Model):
-    """Форма для отдела кадров предприятия"""
+#Форма для отдела кадров предприятия
 
     EDUCATION_CHOICES = (
         ('secondary', 'Среднее'),

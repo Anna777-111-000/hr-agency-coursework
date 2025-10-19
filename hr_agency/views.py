@@ -1,12 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
+from django.contrib import messages
 
 def home(request):
     """Главная страница"""
@@ -43,12 +37,6 @@ def home(request):
             })
 
     return render(request, 'home.html', context)
-
-
-@login_required
-def statistics(request):
-    """Расширенная страница статистики"""
-
 
 @login_required
 def statistics(request):
@@ -103,3 +91,15 @@ def statistics(request):
         'draft_vacancies': draft_vacancies,
         'recent_applications': recent_applications,
     })
+
+@login_required
+def profile(request):
+    """Профиль пользователя"""
+    return render(request, 'users/profile.html', {
+        'user': request.user
+    })
+
+def register(request):
+    """Регистрация нового пользователя"""
+    messages.info(request, "Регистрация временно недоступна. Обратитесь к администратору.")
+    return redirect('login')
