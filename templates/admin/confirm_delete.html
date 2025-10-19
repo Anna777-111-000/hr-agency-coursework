@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Подтверждение удаления{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">🗑️ Подтверждение удаления</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="alert alert-warning">
+                        <h5>⚠️ Внимание!</h5>
+                        <p>Вы собираетесь удалить пользователя:</p>
+                        <h4 class="text-danger">{{ user_obj.username }}</h4>
+                        <p class="mb-0">Это действие нельзя отменить!</p>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body text-start">
+                            <p><strong>Роль:</strong>
+                                <span class="badge
+                                    {% if user_obj.role == 'administrator' %}bg-danger
+                                    {% elif user_obj.role == 'manager' %}bg-warning text-dark
+                                    {% else %}bg-info{% endif %}">
+                                    {% if user_obj.role == 'administrator' %}Администратор
+                                    {% elif user_obj.role == 'manager' %}Менеджер
+                                    {% elif user_obj.role == 'recruiter' %}Рекрутер
+                                    {% else %}{{ user_obj.role }}{% endif %}
+                                </span>
+                            </p>
+                            <p><strong>Email:</strong> {{ user_obj.email|default:"Не указан" }}</p>
+                            <p><strong>Дата регистрации:</strong> {{ user_obj.date_joined|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'admin:user_management' %}" class="btn btn-secondary">
+                                ← Отмена
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                🗑️ Да, удалить пользователя
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

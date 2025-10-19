@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Создание пользователя{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">👤 Создание нового пользователя</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Заполните данные для создания нового пользователя системы</p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            <!-- Личные данные -->
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                       placeholder="Введите имя">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Фамилия</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                       placeholder="Введите фамилию">
+                            </div>
+
+                            <!-- Учетные данные -->
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Имя пользователя *</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                       placeholder="Введите логин" required>
+                                <div class="form-text">Уникальное имя для входа в систему</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email адрес</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="email@example.com">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Пароль *</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="Введите пароль" required>
+                                <div class="form-text">Минимум 6 символов</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="phone_number" class="form-label">Телефон *</label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                       placeholder="+7 (XXX) XXX-XX-XX" required>
+                                <div class="form-text">Обязательное поле для связи</div>
+                            </div>
+
+                            <!-- Роль -->
+                            <div class="col-md-12">
+                                <label for="role" class="form-label">Роль пользователя *</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="">Выберите роль</option>
+                                    <option value="recruiter">Рекрутер</option>
+                                    <option value="manager">Менеджер</option>
+                                    <option value="administrator">Администратор</option>
+                                </select>
+                                <div class="form-text">Определяет права доступа</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{% url 'admin:user_management' %}" class="btn btn-outline-secondary">
+                                    ← Отмена
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    ✅ Создать пользователя
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

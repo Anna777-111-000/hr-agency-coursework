@@ -1,7 +1,10 @@
-from django.contrib.auth import logout
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 
-def custom_logout(request):
-    """Кастомный выход с поддержкой GET запросов"""
-    logout(request)
-    return redirect('home')
+
+def home(request):
+    # Если пользователь - суперадмин, перенаправляем в админ-панель
+    if request.user.is_authenticated and request.user.username == 'systemadmin':
+        return redirect('admin:superadmin_dashboard')
+
+    # Остальная логика главной страницы
+    return render(request, 'home.html')
