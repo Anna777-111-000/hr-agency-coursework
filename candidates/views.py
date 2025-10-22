@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from .models import Candidate, PersonnelForm
 from .forms import PersonnelFormForm
-
+from django.http import HttpResponseForbidden
 
 def role_required(allowed_roles):
     """
@@ -269,3 +269,58 @@ def create_user(request):
                 pass
 
     return render(request, 'admin/create_user.html')
+
+
+@login_required
+def manager_dashboard(request):
+    """Панель управления для менеджеров"""
+    if not request.user.is_manager():
+        return HttpResponseForbidden("Доступ только для менеджеров")
+
+    # Простая статистика
+    total_candidates = PersonnelForm.objects.count()
+    new_candidates = PersonnelForm.objects.filter(status='Новый').count()
+
+    context = {
+        'total_candidates': total_candidates,
+        'new_candidates': new_candidates,
+    }
+    return render(request, 'manager/dashboard.html', context)
+
+
+@login_required
+def admin_dashboard(request):
+    """Панель управления для администраторов"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("Доступ только для администраторов")
+
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    total_users = User.objects.count()
+    total_candidates = PersonnelForm.objects.count()
+
+    context = {
+        'total_users': total_users,
+        'total_candidates': total_candidates,
+    }
+    return render(request, 'admin/dashboard.html', context)
+
+
+@login_required
+def admin_dashboard(request):
+    """Панель управления для администраторов"""
+    if not request.user.is_admin():
+        return HttpResponseForbidden("Доступ только для администраторов")
+
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
+    total_users = User.objects.count()
+    total_candidates = PersonnelForm.objects.count()
+
+    context = {
+        'total_users': total_users,
+        'total_candidates': total_candidates,
+    }
+    return render(request, 'admin/dashboard.html', context)

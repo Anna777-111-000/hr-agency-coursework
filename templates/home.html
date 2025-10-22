@@ -1,77 +1,51 @@
+<!-- templates/home.html -->
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Главная - HR Agency{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    {% if user.is_authenticated %}
-    <!-- Главная страница ДЛЯ АВТОРИЗОВАННЫХ пользователей -->
-    <div class="text-center mb-5">
-        <h1 class="display-5 mb-3">HR Agency</h1>
-        <p class="text-muted welcome-text">Добро пожаловать, {{ user.username }}</p>
-    </div>
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>Добро пожаловать, {{ user.username }}!</h3>
+            </div>
+            <div class="card-body">
+                <p>Ваша роль: <strong>{{ user.get_role_display }}</strong></p>
 
-    <!-- Быстрый доступ к основным разделам -->
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card dashboard-card h-100">
-                <div class="card-body text-center p-4">
-                    <h5 class="card-title mb-3">👥 Кандидаты</h5>
-                    <p class="card-text text-muted small mb-4">Управление базой кандидатов, поиск и фильтрация</p>
-                    <a href="{% url 'candidate_list' %}" class="btn btn-primary">Перейти</a>
+                {% if user.is_recruiter and not user.is_manager and not user.is_admin %}
+                <div class="alert alert-info">
+                    <h5>Доступные действия для рекрутера:</h5>
+                    <ul>
+                        <li>Просмотр кандидатов</li>
+                        <li>Добавление новых кандидатов</li>
+                        <li>Редактирование информации о кандидатах</li>
+                    </ul>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card dashboard-card h-100">
-                <div class="card-body text-center p-4">
-                    <h5 class="card-title mb-3">💼 Вакансии</h5>
-                    <p class="card-text text-muted small mb-4">Создание и управление открытыми вакансиями</p>
-                    <a href="{% url 'vacancy_list' %}" class="btn btn-primary">Перейти</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card dashboard-card h-100">
-                <div class="card-body text-center p-4">
-                    <h5 class="card-title mb-3">📊 Статистика</h5>
-                    <p class="card-text text-muted small mb-4">Детальная аналитика и отчеты по подбору</p>
-                    <a href="{% url 'statistics' %}" class="btn btn-primary">Перейти</a>
-                </div>
-            </div>
-        </div>
-    </div>
+                {% endif %}
 
-    <!-- Краткая статистика -->
-    <div class="quick-stats">
-        <div class="row text-center">
-            <div class="col-md-4 stat-item">
-                <span class="stat-number">{{ candidates_count|default:"0" }}</span>
-                <div class="stat-label">Кандидатов в базе</div>
-            </div>
-            <div class="col-md-4 stat-item">
-                <span class="stat-number">{{ vacancies_count|default:"0" }}</span>
-                <div class="stat-label">Активных вакансий</div>
-            </div>
-            <div class="col-md-4 stat-item">
-                <span class="stat-number">{{ responses_count|default:"0" }}</span>
-                <div class="stat-label">Всего откликов</div>
-            </div>
-        </div>
-    </div>
+                {% if user.is_manager and not user.is_admin %}
+                <div class="alert alert-warning">
+                    <h5>Доступные действия для менеджера:</h5>
+                    <ul>
+                        <li>Все действия рекрутера</li>
+                        <li>Просмотр аналитики</li>
+                        <li>Управление вакансиями</li>
+                    </ul>
+                </div>
+                {% endif %}
 
-    {% else %}
-    <!-- Главная страница ДЛЯ НЕАВТОРИЗОВАННЫХ пользователей -->
-    <div class="jumbotron bg-light p-5 rounded text-center">
-        <h1 class="display-4">Добро пожаловать в HR Agency</h1>
-        <p class="lead">Система для эффективного подбора кандидатов</p>
-        <hr class="my-4">
-        <p>Для доступа к системе требуется авторизация.</p>
-        <div class="mt-4">
-            <a href="{% url 'login' %}" class="btn btn-primary btn-lg me-3">Войти в систему</a>
+                {% if user.is_admin %}
+                <div class="alert alert-success">
+                    <h5>Доступные действия для администратора:</h5>
+                    <ul>
+                        <li>Все действия менеджера</li>
+                        <li>Управление пользователями</li>
+                        <li>Системные настройки</li>
+                        <li>Доступ к админке Django</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

@@ -16,4 +16,7 @@ urlpatterns = [
     path('admin/analytics/', views.candidate_analytics, name='candidate_analytics'),
     path('admin/settings/', views.system_settings, name='system_settings'),
     path('admin/export/', views.candidate_export, name='candidate_export'),
+
+    # Менеджерские URLs (УБРАТЬ дублирование admin/dashboard)
+    path('manager/dashboard/', views.manager_dashboard, name='manager_dashboard'),
 ]

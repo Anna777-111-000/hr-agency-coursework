@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Панель менеджера</h1>
+    <div class="alert alert-info">
+        <strong>Менеджерская панель активна!</strong>
+        <p>Вы вошли как: {{ user.username }} ({{ user.get_role_display }})</p>
+    </div>
+</div>
+{% endblock %}

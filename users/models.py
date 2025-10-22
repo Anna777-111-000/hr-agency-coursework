@@ -15,12 +15,11 @@ class User(AbstractUser):
     def get_role_display(self):
         return dict(self.ROLE_CHOICES).get(self.role, self.role)
 
-    def delete(self, *args, **kwargs):
-        # Защита от удаления системного администратора
-        if self.username == 'systemadmin':
-            raise PermissionError("Нельзя удалить системного администратора")
-        super().delete(*args, **kwargs)
+    def is_manager(self):
+        return self.role in ['manager', 'administrator']
 
-    def is_system_admin(self):
-        """Проверяет, является ли пользователь системным администратором"""
-        return self.username == 'systemadmin'
+    def is_admin(self):
+        return self.role == 'administrator'
+
+    def is_recruiter(self):
+        return self.role == 'recruiter'

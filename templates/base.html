@@ -3,53 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Кадровое агентство{% endblock %}</title>
-    {% load static %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    <title>HR System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Навигационная панель -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">HR Agency</a>
+            <a class="navbar-brand" href="{% url 'home' %}">HR System</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Основное меню для всех авторизованных пользователей -->
+                {% if user.is_authenticated %}
                 <ul class="navbar-nav me-auto">
-                    <!-- ДЛЯ ВСЕХ АВТОРИЗОВАННЫХ, КРОМЕ СУПЕРАДМИНА -->
-                    {% if user.is_authenticated and user.username != 'systemadmin' %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Главная</a>
                     </li>
+
+                    <!-- Меню для рекрутеров -->
+                    {% if user.is_recruiter or user.is_manager or user.is_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'candidate_list' %}">Кандидаты</a>
                     </li>
+                    {% endif %}
+
+                    <!-- Меню для менеджеров и администраторов -->
+                    {% if user.is_manager or user.is_admin %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'vacancy_list' %}">Вакансии</a>
+                        <a class="nav-link" href="{% url 'manager_dashboard' %}">Дашборд менеджера</a>
                     </li>
                     {% endif %}
 
-                    <!-- ТОЛЬКО ДЛЯ СУПЕРАДМИНА -->
-                    {% if user.is_authenticated and user.username == 'systemadmin' %}
+                    <!-- Меню только для администраторов -->
+                    {% if user.is_admin %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'admin:superadmin_dashboard' %}">Панель админа</a>
+                        <a class="nav-link" href="{% url 'admin_dashboard' %}">Дашборд администратора</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'admin:user_management' %}">Управление пользователями</a>
+                        <a class="nav-link" href="/admin/">Админка</a>
                     </li>
                     {% endif %}
                 </ul>
+                {% endif %}
 
+                <!-- Правая часть навигации -->
                 <div class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         <span class="navbar-text me-3">
-                            Привет,
-                            {% if user.username == 'systemadmin' %}
-                                🛡️ Администратор
+                            {% if user.is_admin %}
+                                🛡️ {{ user.username }} (Администратор)
                             {% else %}
                                 {{ user.username }} ({{ user.get_role_display }})
                             {% endif %}
@@ -68,31 +73,20 @@
         </div>
     </nav>
 
-    <!-- Остальной код без изменений -->
-    <div class="container mt-3">
-        {% block back_button %}
-        {% if not request.path == '/' %}
-        <div class="d-flex gap-2">
-            <button onclick="history.back()" class="btn btn-outline-secondary">← Назад</button>
-            <a href="{% url 'home' %}" class="btn btn-outline-primary">На главную</a>
-        </div>
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
         {% endif %}
+
+        {% block content %}
         {% endblock %}
     </div>
 
-    <main class="main-content">
-        <div class="container">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
-
-    <footer class="bg-dark text-white text-center py-3 mt-5">
-        <div class="container">
-            <p>&copy; 2025 Кадровое агентство. Все права защищены.</p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
