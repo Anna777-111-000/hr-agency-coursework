@@ -1,9 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.contrib import messages
 from .models import Candidate, PersonnelForm
-from .forms import PersonnelFormForm
-from django.http import HttpResponseForbidden
+from .forms import PersonnelFormForm, CandidateCreateForm
 
 def role_required(allowed_roles):
     """
@@ -67,10 +67,11 @@ def candidate_list(request):
 
 @login_required
 def candidate_detail(request, candidate_id):
-    candidate = get_object_or_404(PersonnelForm, id=candidate_id)
+    """Детальная страница кандидата (модель Candidate)"""
+    candidate = get_object_or_404(Candidate, id=candidate_id)
 
     # Определяем уровень доступа по роли
-    if request.user.role == 'admin':
+    if request.user.role == 'administrator':
         template = 'candidates/candidate_admin.html'
     elif request.user.role == 'manager':
         template = 'candidates/candidate_manager.html'
@@ -81,6 +82,7 @@ def candidate_detail(request, candidate_id):
         'candidate': candidate,
         'user_role': request.user.role
     })
+
 
 # Функции для форм - только менеджеры и админы
 @role_required(['manager', 'admin'])
@@ -138,28 +140,6 @@ def system_settings(request):
     return render(request, 'candidates/settings.html')
 
 
-@role_required(['admin'])
-def admin_dashboard(request):
-    """Административная панель"""
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-
-    users = User.objects.all()
-    total_candidates = PersonnelForm.objects.count()
-
-    # Статистика по ролям
-    recruiters = users.filter(role='recruiter').count()
-    managers = users.filter(role='manager').count()
-    admins = users.filter(role='admin').count()
-
-    return render(request, 'admin/dashboard.html', {
-        'users': users,
-        'total_candidates': total_candidates,
-        'recruiters_count': recruiters,
-        'managers_count': managers,
-        'admins_count': admins,
-    })
-
 
 @role_required(['admin'])
 def user_management(request):
@@ -184,30 +164,6 @@ def user_management(request):
     return render(request, 'admin/user_management.html', {
         'users': users
     })
-
-
-@role_required(['admin'])
-def admin_dashboard(request):
-    """Административная панель"""
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-
-    users = User.objects.all()
-    total_candidates = PersonnelForm.objects.count()
-
-    # Статистика по ролям
-    recruiters = users.filter(role='recruiter').count()
-    managers = users.filter(role='manager').count()
-    admins = users.filter(role='admin').count()
-
-    return render(request, 'admin/dashboard.html', {
-        'users': users,
-        'total_candidates': total_candidates,
-        'recruiters_count': recruiters,
-        'managers_count': managers,
-        'admins_count': admins,
-    })
-
 
 @role_required(['admin'])
 def user_management(request):
@@ -287,40 +243,55 @@ def manager_dashboard(request):
     }
     return render(request, 'manager/dashboard.html', context)
 
-
-@login_required
+@role_required(['admin'])
 def admin_dashboard(request):
-    """Панель управления для администраторов"""
-    if not request.user.is_admin():
-        return HttpResponseForbidden("Доступ только для администраторов")
-
+    """Административная панель"""
     from django.contrib.auth import get_user_model
     User = get_user_model()
 
-    total_users = User.objects.count()
+    users = User.objects.all()
     total_candidates = PersonnelForm.objects.count()
 
-    context = {
-        'total_users': total_users,
+    # Статистика по ролям
+    recruiters = users.filter(role='recruiter').count()
+    managers = users.filter(role='manager').count()
+    admins = users.filter(role='admin').count()
+
+    return render(request, 'admin/dashboard.html', {
+        'users': users,
         'total_candidates': total_candidates,
-    }
-    return render(request, 'admin/dashboard.html', context)
+        'recruiters_count': recruiters,
+        'managers_count': managers,
+        'admins_count': admins,
+    })
 
 
 @login_required
-def admin_dashboard(request):
-    """Панель управления для администраторов"""
-    if not request.user.is_admin():
-        return HttpResponseForbidden("Доступ только для администраторов")
+def candidate_create(request):
+    """Создание нового кандидата - для рекрутеров и выше"""
+    # Проверяем права доступа
+    if request.user.role not in ['recruiter', 'manager', 'administrator']:
+        messages.error(request, "У вас нет прав для создания кандидатов")
+        return redirect('candidate_list')
 
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
+    if request.method == 'POST':
+        form = CandidateCreateForm(request.POST)
+        if form.is_valid():
+            try:
+                candidate = form.save()
+                messages.success(request, f'Кандидат {candidate.first_name} {candidate.last_name} успешно создан!')
+                return redirect('candidate_detail', candidate_id=candidate.id)
+            except Exception as e:
+                messages.error(request, f'Ошибка при сохранении кандидата: {str(e)}')
+        else:
+            # Показываем ошибки валидации
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = CandidateCreateForm()
 
-    total_users = User.objects.count()
-    total_candidates = PersonnelForm.objects.count()
-
-    context = {
-        'total_users': total_users,
-        'total_candidates': total_candidates,
-    }
-    return render(request, 'admin/dashboard.html', context)
+    return render(request, 'candidates/candidate_create.html', {
+        'form': form,
+        'title': 'Добавить кандидата'
+    })

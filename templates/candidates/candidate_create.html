@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавить кандидата - HR System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">➕ Добавить нового кандидата</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Сообщения об ошибках и успехе -->
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Основная информация -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">📝 Основная информация</h5>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.last_name.label }}</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.last_name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.first_name.label }}</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.first_name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.patronymic.label }}</label>
+                                {{ form.patronymic }}
+                                {% if form.patronymic.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.patronymic.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Контактная информация -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">📞 Контактная информация</h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                <div class="form-text">Обязательное поле</div>
+                                {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.email.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                                <div class="form-text">Формат: +7 XXX XXX-XX-XX</div>
+                                {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.phone.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Профессиональная информация -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">💼 Профессиональная информация</h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.age.label }}</label>
+                                {{ form.age }}
+                                <div class="form-text">От 18 до 100 лет</div>
+                                {% if form.age.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.age.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.experience_years.label }}</label>
+                                {{ form.experience_years }}
+                                <div class="form-text">От 0 до 50 лет</div>
+                                {% if form.experience_years.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.experience_years.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label class="form-label">{{ form.skills.label }}</label>
+                                {{ form.skills }}
+                                <div class="form-text">Выберите один или несколько навыков (зажмите Ctrl для множественного выбора)</div>
+                                {% if form.skills.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.skills.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'candidate_list' %}" class="btn btn-secondary">
+                                ← Назад к списку
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-success me-2">
+                                    ✅ Сохранить кандидата
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary">
+                                    🔄 Очистить форму
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Подсказки -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6>💡 Подсказки по заполнению:</h6>
+                    <ul class="mb-0">
+                        <li>Поля отмеченные * являются обязательными</li>
+                        <li>Email должен быть уникальным для каждого кандидата</li>
+                        <li>Номер телефона должен начинаться с '+'</li>
+                        <li>После создания кандидата вы будете перенаправлены на его страницу</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+</style>
+{% endblock %}

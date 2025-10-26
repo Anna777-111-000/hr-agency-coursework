@@ -1,51 +1,178 @@
-<!-- templates/home.html -->
 {% extends 'base.html' %}
 
+{% block title %}Главная - HR System{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h3>Добро пожаловать, {{ user.username }}!</h3>
-            </div>
-            <div class="card-body">
-                <p>Ваша роль: <strong>{{ user.get_role_display }}</strong></p>
+<div class="container mt-4">
+    {% if user.is_admin %}
+        <!-- Контент для АДМИНИСТРАТОРА -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h2>🛡️ Административная панель системы</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Системный администратор</strong></p>
+                        
+                        <div class="alert alert-info">
+                            <h5>Ваша роль: <strong>Администратор системы</strong></h5>
+                            <p class="mb-0">Вы отвечаете за техническую поддержку и настройку HR-системы</p>
+                        </div>
 
-                {% if user.is_recruiter and not user.is_manager and not user.is_admin %}
-                <div class="alert alert-info">
-                    <h5>Доступные действия для рекрутера:</h5>
-                    <ul>
-                        <li>Просмотр кандидатов</li>
-                        <li>Добавление новых кандидатов</li>
-                        <li>Редактирование информации о кандидатах</li>
-                    </ul>
-                </div>
-                {% endif %}
+                        <div class="row mt-4">
+                            <!-- Карточка управления пользователями -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>👥</h3>
+                                        <h5 class="card-title">Управление пользователями</h5>
+                                        <p class="card-text">Создание пользователей, назначение ролей, управление доступом</p>
+                                        <a href="{% url 'user_management' %}" class="btn btn-primary">Перейти</a>
+                                    </div>
+                                </div>
+                            </div>
 
-                {% if user.is_manager and not user.is_admin %}
-                <div class="alert alert-warning">
-                    <h5>Доступные действия для менеджера:</h5>
-                    <ul>
-                        <li>Все действия рекрутера</li>
-                        <li>Просмотр аналитики</li>
-                        <li>Управление вакансиями</li>
-                    </ul>
-                </div>
-                {% endif %}
+                            <!-- Карточка системной аналитики -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>📊</h3>
+                                        <h5 class="card-title">Системная аналитика</h5>
+                                        <p class="card-text">Мониторинг работы системы, статистика использования, логи</p>
+                                        <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Перейти</a>
+                                    </div>
+                                </div>
+                            </div>
 
-                {% if user.is_admin %}
-                <div class="alert alert-success">
-                    <h5>Доступные действия для администратора:</h5>
-                    <ul>
-                        <li>Все действия менеджера</li>
-                        <li>Управление пользователями</li>
-                        <li>Системные настройки</li>
-                        <li>Доступ к админке Django</li>
-                    </ul>
+                            <!-- Карточка настроек системы -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>⚙️</h3>
+                                        <h5 class="card-title">Настройки системы</h5>
+                                        <p class="card-text">Конфигурация системы, параметры безопасности, резервное копирование</p>
+                                        <a href="{% url 'system_settings' %}" class="btn btn-primary">Перейти</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Карточка админки Django -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>🔧</h3>
+                                        <h5 class="card-title">Админка Django</h5>
+                                        <p class="card-text">Прямой доступ к базе данных и моделям системы</p>
+                                        <a href="/admin/" class="btn btn-warning" target="_blank">Открыть админку</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
-    </div>
+
+    {% elif user.is_manager %}
+        <!-- Контент для МЕНЕДЖЕРА -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h2>📊 Панель управления менеджера</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Менеджер HR-отдела</strong></p>
+                        
+                        <div class="alert alert-warning">
+                            <h5>Ваша роль: <strong>Менеджер</strong></h5>
+                            <p class="mb-0">Вы управляете операционной деятельностью HR-отдела</p>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>👥</h3>
+                                        <h5 class="card-title">Кандидаты</h5>
+                                        <p class="card-text">Управление базой кандидатов</p>
+                                        <a href="{% url 'candidate_list' %}" class="btn btn-primary">Перейти</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>💼</h3>
+                                        <h5 class="card-title">Вакансии</h5>
+                                        <p class="card-text">Управление открытыми вакансиями</p>
+                                        <a href="{% url 'vacancy_list' %}" class="btn btn-primary">Перейти</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>📈</h3>
+                                        <h5 class="card-title">Аналитика</h5>
+                                        <p class="card-text">Метрики и отчеты по работе отдела</p>
+                                        <a href="{% url 'candidate_analytics' %}" class="btn btn-primary">Перейти</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Контент для РЕКРУТЕРА -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h2>👥 Рабочее место рекрутера</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Рекрутер</strong></p>
+                        
+                        <div class="alert alert-info">
+                            <h5>Ваша роль: <strong>Рекрутер</strong></h5>
+                            <p class="mb-0">Вы занимаетесь поиском и подбором кандидатов</p>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>🔍</h3>
+                                        <h5 class="card-title">Поиск кандидатов</h5>
+                                        <p class="card-text">Работа с базой кандидатов, поиск и фильтрация</p>
+                                        <a href="{% url 'candidate_list' %}" class="btn btn-primary">Перейти к кандидатам</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h3>📝</h3>
+                                        <h5 class="card-title">Активные вакансии</h5>
+                                        <p class="card-text">Просмотр открытых вакансий и откликов</p>
+                                        <a href="{% url 'vacancy_list' %}" class="btn btn-primary">Перейти к вакансиям</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% endif %}
 </div>
 {% endblock %}

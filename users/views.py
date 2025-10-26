@@ -1,11 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def home(request):
-    context = {
-        'user': request.user
-    }
-    return render(request, 'home.html', context)
-
-    # Остальная логика главной страницы
+    """Главная страница - разный контент для разных ролей"""
     return render(request, 'home.html')

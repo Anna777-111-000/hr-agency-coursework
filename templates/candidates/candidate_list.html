@@ -4,8 +4,18 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Кандидаты</h1>
-    <p class="lead">Управление базой кандидатов</p>
+    <!-- Заголовок с кнопкой добавления -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Кандидаты</h1>
+            <p class="lead">Управление базой кандидатов</p>
+        </div>
+        {% if user.role == 'recruiter' or user.role == 'manager' %}
+        <a href="{% url 'candidate_create' %}" class="btn btn-success">
+            ➕ Добавить кандидата
+        </a>
+        {% endif %}
+    </div>
 
     <!-- Форма поиска и фильтрации -->
     <div class="card mb-4">
@@ -33,6 +43,28 @@
         </div>
     </div>
 
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ candidates.count }}</h5>
+                    <p class="card-text">Всего кандидатов</p>
+                </div>
+            </div>
+        </div>
+        {% if user.role == 'manager' or user.role == 'administrator' %}
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ candidates.filter.is_approved|length }}</h5>
+                    <p class="card-text">Проверено отделом кадров</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Результаты -->
     <div class="row">
         {% for candidate in candidates %}
@@ -41,47 +73,81 @@
                 <div class="card-body">
                     <h5 class="card-title">
                         <a href="{% url 'candidate_detail' candidate.id %}" class="text-decoration-none text-dark">
-                            {{ candidate.first_name }} {{ candidate.last_name }}
+                            {{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}
                         </a>
                     </h5>
                     <p class="card-text">
-                        <strong>Email:</strong> {{ candidate.email }}<br>
-                        <strong>Телефон:</strong> {{ candidate.phone }}<br>
-                        {% if candidate.experience_years %}
-                        <strong>Опыт:</strong> {{ candidate.experience_years }} лет<br>
+                        <strong>📧 Email:</strong> {{ candidate.email }}<br>
+                        <strong>📞 Телефон:</strong> {{ candidate.phone|default:"Не указан" }}<br>
+                        {% if candidate.work_experience_total %}
+                        <strong>💼 Опыт:</strong> {{ candidate.work_experience_total }} лет<br>
                         {% endif %}
                         {% if candidate.age %}
-                        <strong>Возраст:</strong> {{ candidate.age }} лет
+                        <strong>🎂 Возраст:</strong> {{ candidate.age }} лет<br>
                         {% endif %}
+                        <strong>🎓 Образование:</strong> {{ candidate.get_education_display }}<br>
+                        <strong>📚 Специальность:</strong> {{ candidate.specialty }}
                     </p>
-                    {% if candidate.skills.all %}
+
+                    <!-- Статус проверки (для менеджеров и админов) -->
+                    {% if user.role == 'manager' or user.role == 'administrator' %}
                     <div class="mt-2">
-                        <strong>Навыки:</strong>
-                        {% for skill in candidate.skills.all %}
-                        <span class="badge bg-secondary me-1">{{ skill.name }}</span>
-                        {% endfor %}
+                        <span class="badge {% if candidate.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if candidate.is_approved %}✅ Проверено{% else %}⏳ На проверке{% endif %}
+                        </span>
                     </div>
                     {% endif %}
                 </div>
                 <div class="card-footer">
-                    <small class="text-muted">Добавлен: {{ candidate.created_at|date:"d.m.Y" }}</small>
-                    <a href="{% url 'candidate_detail' candidate.id %}" class="btn btn-outline-primary btn-sm float-end">
-                        Подробнее →
-                    </a>
+                    <small class="text-muted">
+                        📅 Добавлен: {{ candidate.created_at|date:"d.m.Y" }}
+                    </small>
+                    <div class="float-end">
+                        <a href="{% url 'candidate_detail' candidate.id %}" class="btn btn-outline-primary btn-sm">
+                            Подробнее ›
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="alert alert-info">
+            <div class="alert alert-info text-center">
                 {% if search_query or min_experience %}
-                Кандидаты по вашему запросу не найдены. Попробуйте изменить критерии поиска.
+                <h5>🔍 Кандидаты не найдены</h5>
+                <p>Попробуйте изменить критерии поиска или <a href="{% url 'candidate_create' %}">добавить нового кандидата</a></p>
                 {% else %}
-                Пока нет кандидатов в базе данных
+                <h5>📝 Пока нет кандидатов</h5>
+                <p>Начните с <a href="{% url 'candidate_create' %}">добавления первого кандидата</a> в базу</p>
                 {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
+
+    <!-- Пагинация (можно добавить позже) -->
+    {% if candidates.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if candidates.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ candidates.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">Назад</a>
+            </li>
+            {% endif %}
+
+            {% for num in candidates.paginator.page_range %}
+            <li class="page-item {% if candidates.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if candidates.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ candidates.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">Вперед</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

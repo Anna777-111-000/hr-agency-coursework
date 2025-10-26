@@ -5,6 +5,7 @@ urlpatterns = [
     # Основные URLs для кандидатов
     path('', views.candidate_list, name='candidate_list'),
     path('<int:candidate_id>/', views.candidate_detail, name='candidate_detail'),
+    path('create/', views.candidate_create, name='candidate_create'),
 
     # Формы кадров
     path('personnel/form/', views.personnel_form, name='personnel_form'),
@@ -17,6 +18,6 @@ urlpatterns = [
     path('admin/settings/', views.system_settings, name='system_settings'),
     path('admin/export/', views.candidate_export, name='candidate_export'),
 
-    # Менеджерские URLs (УБРАТЬ дублирование admin/dashboard)
+    # Менеджерские URLs
     path('manager/dashboard/', views.manager_dashboard, name='manager_dashboard'),
 ]
