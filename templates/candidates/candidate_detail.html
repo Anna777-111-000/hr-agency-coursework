@@ -1,72 +1,57 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ candidate.last_name }} {{ candidate.first_name }}{% endblock %}
+{% block title %}{{ candidate.first_name }} {{ candidate.last_name }} - HR System{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'candidate_list' %}">Кандидаты</a></li>
-            <li class="breadcrumb-item active">{{ candidate.last_name }} {{ candidate.first_name }}</li>
-        </ol>
-    </nav>
-
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-8 mx-auto">
             <div class="card">
-                <div class="card-header">
-                    <h2>{{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}</h2>
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Профиль кандидата</h4>
+                        <a href="{% url 'candidate_list' %}" class="btn btn-light btn-sm">← Назад</a>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <h5 class="card-title">{{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}</h5>
 
-                    <!-- Основная информация (для всех) -->
-                    <h5>Контактная информация</h5>
-                    <p><strong>Email:</strong> {{ candidate.email }}</p>
-                    <p><strong>Телефон:</strong> {{ candidate.phone }}</p>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>Контактная информация</h6>
+                            <p><strong>Email:</strong> {{ candidate.email }}</p>
+                            <p><strong>Телефон:</strong> {{ candidate.phone|default:"Не указан" }}</p>
+                            <p><strong>Адрес:</strong> {{ candidate.address|default:"Не указан" }}</p>
+                        </div>
 
-                    <!-- Профессиональная информация -->
-                    <h5 class="mt-4">Профессиональная информация</h5>
-                    <p><strong>Опыт работы:</strong> {{ candidate.work_experience_total }} лет</p>
-                    <p><strong>Образование:</strong> {{ candidate.get_education_display }}</p>
-                    <p><strong>Специальность:</strong> {{ candidate.specialty }}</p>
+                        <div class="col-md-6">
+                            <h6>Профессиональная информация</h6>
+                            <p><strong>Образование:</strong> {{ candidate.get_education_display|default:"Не указано" }}</p>
+                            <p><strong>Специальность:</strong> {{ candidate.specialty|default:"Не указана" }}</p>
+                            <p><strong>Опыт работы:</strong> {{ candidate.work_experience_total }} лет</p>
+                            <p><strong>Стаж по специальности:</strong> {{ candidate.work_experience_specialty }} лет</p>
+                        </div>
+                    </div>
 
-                    <!-- Для менеджеров и админов -->
-                    {% if user.role == 'manager' or user.role == 'admin' %}
-                    <h5 class="mt-4">Личная информация</h5>
-                    <p><strong>Дата рождения:</strong> {{ candidate.birth_date }}</p>
-                    <p><strong>Адрес:</strong> {{ candidate.address }}</p>
-                    <p><strong>Семейное положение:</strong> {{ candidate.get_marital_status_display }}</p>
+                    {% if user.role == 'manager' or user.role == 'administrator' %}
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6>Дополнительная информация (для менеджеров)</h6>
+                        <p><strong>Дата рождения:</strong> {{ candidate.birth_date|date:"d.m.Y"|default:"Не указана" }}</p>
+                        <p><strong>Гражданство:</strong> {{ candidate.citizenship }}</p>
+                        <p><strong>Семейное положение:</strong> {{ candidate.get_marital_status_display }}</p>
+
+                        {% if candidate.additional_info %}
+                        <p><strong>Дополнительная информация:</strong><br>{{ candidate.additional_info }}</p>
+                        {% endif %}
+                    </div>
                     {% endif %}
 
-                    <!-- Только для админов -->
-                    {% if user.role == 'admin' %}
-                    <h5 class="mt-4">Паспортные данные</h5>
-                    <p><strong>Паспорт:</strong> {{ candidate.passport_series }} {{ candidate.passport_number }}</p>
-                    <p><strong>Кем выдан:</strong> {{ candidate.passport_issued_by }}</p>
-                    <p><strong>Дата выдачи:</strong> {{ candidate.passport_issue_date }}</p>
-                    <p><strong>ИНН:</strong> {{ candidate.inn }}</p>
-                    <p><strong>СНИЛС:</strong> {{ candidate.snils }}</p>
-                    {% endif %}
-
-                </div>
-                <div class="card-footer text-muted">
-                    Добавлен: {{ candidate.created_at|date:"d.m.Y H:i" }}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h6>Информация о доступе</h6>
-                </div>
-                <div class="card-body">
-                    <p><strong>Ваша роль:</strong> {{ user.get_role_display }}</p>
-                    <p><strong>Уровень доступа:</strong>
-                        {% if user.role == 'admin' %}Полный{% endif %}
-                        {% if user.role == 'manager' %}Расширенный{% endif %}
-                        {% if user.role == 'recruiter' %}Базовый{% endif %}
-                    </p>
+                    <div class="mt-4 text-muted small">
+                        <div>Создано: {{ candidate.created_at|date:"d.m.Y H:i" }}</div>
+                        {% if candidate.updated_at != candidate.created_at %}
+                        <div>Обновлено: {{ candidate.updated_at|date:"d.m.Y H:i" }}</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

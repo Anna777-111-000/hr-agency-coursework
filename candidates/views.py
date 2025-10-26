@@ -32,14 +32,8 @@ def is_hr_user(user):
 
 @login_required
 def candidate_list(request):
-    """Список кандидатов с поиском и фильтрацией - доступно всем авторизованным"""
-
-    # ИСПОЛЬЗУЕМ PersonnelForm вместо Candidate
+    """Список кандидатов с поиском и фильтрацией"""
     candidates = PersonnelForm.objects.all()
-
-    print(f"DEBUG: Найдено кандидатов в БД: {candidates.count()}")
-    for candidate in candidates:
-        print(f"DEBUG: Кандидат: {candidate.last_name} {candidate.first_name}")
 
     # Поиск по имени, фамилии или email
     search_query = request.GET.get('search', '')
@@ -50,13 +44,18 @@ def candidate_list(request):
             Q(email__icontains=search_query)
         )
 
-    # Фильтрация по опыту работы (используем общий стаж)
+    # Фильтрация по опыту работы
     min_experience = request.GET.get('min_experience', '')
     if min_experience:
         try:
             candidates = candidates.filter(work_experience_total__gte=int(min_experience))
         except ValueError:
             pass
+
+    # Фильтрация по образованию
+    education_filter = request.GET.get('education', '')
+    if education_filter:
+        candidates = candidates.filter(education=education_filter)
 
     return render(request, 'candidates/candidate_list.html', {
         'candidates': candidates,
@@ -67,18 +66,10 @@ def candidate_list(request):
 
 @login_required
 def candidate_detail(request, candidate_id):
-    """Детальная страница кандидата (модель Candidate)"""
-    candidate = get_object_or_404(Candidate, id=candidate_id)
+    """Детальная страница кандидата"""
+    candidate = get_object_or_404(PersonnelForm, id=candidate_id)
 
-    # Определяем уровень доступа по роли
-    if request.user.role == 'administrator':
-        template = 'candidates/candidate_admin.html'
-    elif request.user.role == 'manager':
-        template = 'candidates/candidate_manager.html'
-    else:  # recruiter
-        template = 'candidates/candidate_public.html'
-
-    return render(request, template, {
+    return render(request, 'candidates/candidate_detail.html', {
         'candidate': candidate,
         'user_role': request.user.role
     })

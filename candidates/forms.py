@@ -94,3 +94,67 @@ class CandidateCreateForm(forms.ModelForm):
         if experience_years and experience_years > 50:
             raise forms.ValidationError("Опыт работы не может превышать 50 лет")
         return experience_years
+
+
+class SimpleCandidateForm(forms.ModelForm):
+    """Упрощенная форма для создания кандидатов рекрутерами"""
+
+    class Meta:
+        model = PersonnelForm
+        fields = [
+            'last_name', 'first_name', 'patronymic',
+            'email', 'phone', 'education', 'specialty',
+            'work_experience_total'
+        ]
+        widgets = {
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите фамилию',
+                'required': True
+            }),
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите имя',
+                'required': True
+            }),
+            'patronymic': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите отчество'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'email@example.com',
+                'required': True
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+7 XXX XXX-XX-XX'
+            }),
+            'education': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'specialty': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Например: Программная инженерия'
+            }),
+            'work_experience_total': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '50'
+            })
+        }
+        labels = {
+            'work_experience_total': 'Опыт работы (лет)',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Убираем обязательность некоторых полей для рекрутеров
+        self.fields['specialty'].required = False
+        self.fields['education'].required = False
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if PersonnelForm.objects.filter(email=email).exists():
+            raise forms.ValidationError("Кандидат с таким email уже существует")
+        return email
