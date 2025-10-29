@@ -3,15 +3,92 @@ from vacancies.models import Skill
 
 
 class Candidate(models.Model):
+    # Основная информация
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     patronymic = models.CharField(max_length=100, blank=True, verbose_name="Отчество")
     email = models.EmailField(unique=True, verbose_name="Email")
-    phone = models.CharField(max_length=15, blank=True, verbose_name="Телефон")
+    phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")  # ИЗМЕНИЛИ с 15 на 20
     age = models.PositiveIntegerField(null=True, blank=True, verbose_name="Возраст")
     experience_years = models.PositiveIntegerField(default=0, verbose_name="Опыт работы (лет)")
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True, verbose_name="Резюме (файл)")
+
+    # Профессиональная информация
+    specialization = models.CharField(max_length=200, blank=True, verbose_name="Специализация")
+    position_level = models.CharField(max_length=20, choices=[
+        ('intern', 'Intern'),  # ДОБАВИЛИ intern
+        ('junior', 'Junior'),
+        ('middle', 'Middle'),
+        ('senior', 'Senior'),
+        ('lead', 'Lead')
+    ], blank=True, verbose_name="Уровень позиции")
+
+    # Статус и формат работы
+    employment_status = models.CharField(max_length=20, choices=[
+        ('employed', 'Трудоустроен'),
+        ('unemployed', 'В поиске'),
+        ('part_time', 'Частичная занятость'),
+        ('student', 'Студент')  # ДОБАВИЛИ student
+    ], default='unemployed', verbose_name="Статус трудоустройства")
+
+    work_format = models.CharField(max_length=20, choices=[
+        ('office', 'Офис'),
+        ('remote', 'Удаленно'),
+        ('hybrid', 'Гибрид')
+    ], blank=True, verbose_name="Формат работы")
+
+    # История работы
+    last_workplace = models.CharField(max_length=200, blank=True, verbose_name="Последнее место работы")
+    last_position = models.CharField(max_length=200, blank=True, verbose_name="Должность")
+    work_period = models.CharField(max_length=100, blank=True, verbose_name="Период работы")
+    responsibilities = models.TextField(blank=True, verbose_name="Обязанности и достижения")
+
+    # Образование
+    education_level = models.CharField(max_length=50, choices=[
+        ('secondary', 'Среднее'),
+        ('specialized_secondary', 'Среднее специальное'),
+        ('incomplete_higher', 'Неполное высшее'),
+        ('higher', 'Высшее'),
+        ('bachelor', 'Бакалавр'),
+        ('master', 'Магистр'),
+        ('phd', 'Кандидат наук'),
+        ('doctor', 'Доктор наук'),
+    ], blank=True, verbose_name="Уровень образования")
+    education_institution = models.CharField(max_length=200, blank=True, verbose_name="ВУЗ/Курсы")
+    education_specialty = models.CharField(max_length=200, blank=True, verbose_name="Специальность")
+    graduation_year = models.PositiveIntegerField(null=True, blank=True, verbose_name="Год окончания")
+
+    # Навыки
     skills = models.ManyToManyField('vacancies.Skill', blank=True, verbose_name="Навыки")
+
+    # Источник и рекрутер
+    source = models.CharField(max_length=100, choices=[
+        ('hh', 'HH.ru'),
+        ('linkedin', 'LinkedIn'),
+        ('habr', 'Habr Career'),
+        ('recommendation', 'Рекомендация'),
+        ('other', 'Другое')
+    ], default='hh', verbose_name="Источник кандидата")
+    source_details = models.CharField(max_length=200, blank=True, verbose_name="Детали источника")
+    assigned_recruiter = models.CharField(max_length=100, blank=True, verbose_name="Ответственный рекрутер")
+
+    # Файлы
+    resume = models.FileField(
+        upload_to='resumes/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        verbose_name="Резюме (файл)"
+    )
+
+    # Примечания
+    recruiter_notes = models.TextField(blank=True, verbose_name="Примечания рекрутера")
+    next_actions = models.TextField(blank=True, verbose_name="План следующих действий")
+    candidate_features = models.TextField(blank=True, verbose_name="Особенности кандидата")
+
+    # Зарплата и выход
+    desired_salary = models.PositiveIntegerField(null=True, blank=True, verbose_name="Желаемая зарплата")
+    notice_period = models.CharField(max_length=50, blank=True, verbose_name="Срок выхода на работу")
+
+    # Временные метки
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,7 +125,7 @@ class Application(models.Model):
 
 # форма кандидатов
 class PersonnelForm(models.Model):
-#Форма для отдела кадров предприятия
+    # Форма для отдела кадров предприятия
 
     EDUCATION_CHOICES = (
         ('secondary', 'Среднее'),
@@ -68,6 +145,7 @@ class PersonnelForm(models.Model):
         ('widowed', 'Вдовец/Вдова'),
     )
 
+    skills = models.ManyToManyField('vacancies.Skill', blank=True, verbose_name="Навыки")
     # Основная информация
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     first_name = models.CharField(max_length=100, verbose_name="Имя")

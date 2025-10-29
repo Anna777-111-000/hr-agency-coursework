@@ -15,12 +15,22 @@
                 <div class="card-body p-3">
                     <div class="mb-2">
                         <small class="text-muted">Всего кандидатов:</small>
-                        <div class="fw-bold">{{ candidates.count }}</div>
+                        <div class="fw-bold">{{ total_candidates }}</div>
                     </div>
                     {% if user.role == 'manager' or user.role == 'administrator' %}
+                    <div class="mb-2">
+                        <small class="text-muted">С опытом > 3 лет:</small>
+                        <div class="fw-bold">{{ experienced_candidates }}</div>
+                    </div>
                     <div>
-                        <small class="text-muted">Проверено отделом кадров:</small>
-                        <div class="fw-bold">{{ candidates.filter.is_approved|length }}</div>
+                        <small class="text-muted">Процент с опытом:</small>
+                        <div class="fw-bold">
+                            {% if total_candidates > 0 %}
+                                {{ experienced_candidates|floatformat:0 }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -60,6 +70,19 @@
                             </select>
                         </div>
 
+                        <!-- Уровень позиции -->
+                        <div class="mb-3">
+                            <label class="form-label small">Уровень позиции:</label>
+                            <select class="form-select form-select-sm" name="position_level">
+                                <option value="">Все</option>
+                                <option value="intern" {% if request.GET.position_level == 'intern' %}selected{% endif %}>Intern</option>
+                                <option value="junior" {% if request.GET.position_level == 'junior' %}selected{% endif %}>Junior</option>
+                                <option value="middle" {% if request.GET.position_level == 'middle' %}selected{% endif %}>Middle</option>
+                                <option value="senior" {% if request.GET.position_level == 'senior' %}selected{% endif %}>Senior</option>
+                                <option value="lead" {% if request.GET.position_level == 'lead' %}selected{% endif %}>Lead</option>
+                            </select>
+                        </div>
+
                         <!-- Кнопки фильтрации -->
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">Применить фильтры</button>
@@ -78,12 +101,38 @@
                     <h1>Кандидаты</h1>
                     <p class="text-muted">Управление базой кандидатов</p>
                 </div>
-                {% if user.role == 'recruiter' or user.role == 'manager' %}
-                <a href="{% url 'candidate_create' %}" class="btn btn-success btn-sm">
+                {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+                <a href="{% url 'candidate_create' %}" class="btn btn-success">
                     ➕ Добавить кандидата
                 </a>
                 {% endif %}
             </div>
+
+            <!-- Сообщения -->
+            {% if messages %}
+            <div class="messages mb-3">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Информация о фильтрах -->
+            {% if search_query or min_experience or request.GET.education or request.GET.position_level %}
+            <div class="alert alert-info mb-3">
+                <small>
+                    <strong>Активные фильтры:</strong>
+                    {% if search_query %}Поиск: "{{ search_query }}"{% endif %}
+                    {% if min_experience %}Опыт: от {{ min_experience }} лет{% endif %}
+                    {% if request.GET.education %}Образование: {{ request.GET.education }}{% endif %}
+                    {% if request.GET.position_level %}Уровень: {{ request.GET.position_level }}{% endif %}
+                    <a href="{% url 'candidate_list' %}" class="ms-2">Сбросить все</a>
+                </small>
+            </div>
+            {% endif %}
 
             <!-- Результаты -->
             <div class="row">
@@ -91,11 +140,19 @@
                 <div class="col-lg-6 mb-3">
                     <div class="card h-100 border">
                         <div class="card-body">
-                            <h6 class="card-title">
-                                <a href="{% url 'candidate_detail' candidate.id %}" class="text-decoration-none">
-                                    {{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}
-                                </a>
-                            </h6>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">
+                                    <a href="{% url 'candidate_detail' candidate.id %}" class="text-decoration-none">
+                                        {{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}
+                                    </a>
+                                </h6>
+                                {% if candidate.position_level %}
+                                <span class="badge {% if candidate.position_level == 'senior' or candidate.position_level == 'lead' %}bg-success{% elif candidate.position_level == 'middle' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ candidate.get_position_level_display }}
+                                </span>
+                                {% endif %}
+                            </div>
+
                             <div class="small">
                                 <div class="mb-1">
                                     <span class="text-muted">Email:</span> {{ candidate.email }}
@@ -105,29 +162,32 @@
                                     <span class="text-muted">Телефон:</span> {{ candidate.phone }}
                                 </div>
                                 {% endif %}
-                                {% if candidate.work_experience_total %}
+                                {% if candidate.experience_years %}
                                 <div class="mb-1">
-                                    <span class="text-muted">Опыт:</span> {{ candidate.work_experience_total }} лет
+                                    <span class="text-muted">Опыт:</span> {{ candidate.experience_years }} лет
                                 </div>
                                 {% endif %}
-                                {% if candidate.education %}
+                                {% if candidate.education_level %}
                                 <div class="mb-1">
-                                    <span class="text-muted">Образование:</span> {{ candidate.get_education_display }}
+                                    <span class="text-muted">Образование:</span> {{ candidate.get_education_level_display }}
                                 </div>
                                 {% endif %}
-                                {% if candidate.specialty %}
+                                {% if candidate.specialization %}
                                 <div class="mb-1">
-                                    <span class="text-muted">Специальность:</span> {{ candidate.specialty }}
+                                    <span class="text-muted">Специализация:</span> {{ candidate.specialization }}
                                 </div>
                                 {% endif %}
                             </div>
 
-                            <!-- Статус проверки -->
-                            {% if user.role == 'manager' or user.role == 'administrator' %}
+                            <!-- Навыки -->
+                            {% if candidate.skills.all %}
                             <div class="mt-2">
-                                <span class="badge {% if candidate.is_approved %}bg-success{% else %}bg-warning{% endif %}">
-                                    {% if candidate.is_approved %}Проверено{% else %}На проверке{% endif %}
-                                </span>
+                                {% for skill in candidate.skills.all|slice:":3" %}
+                                <span class="badge bg-light text-dark border me-1 mb-1">{{ skill.name }}</span>
+                                {% endfor %}
+                                {% if candidate.skills.count > 3 %}
+                                <span class="badge bg-light text-dark border">+{{ candidate.skills.count|add:"-3" }}</span>
+                                {% endif %}
                             </div>
                             {% endif %}
                         </div>
@@ -136,22 +196,29 @@
                                 <small class="text-muted">
                                     Добавлен: {{ candidate.created_at|date:"d.m.Y" }}
                                 </small>
-                                <a href="{% url 'candidate_detail' candidate.id %}" class="btn btn-outline-primary btn-sm">
-                                    Подробнее
-                                </a>
+                                <div>
+                                    <a href="{% url 'candidate_detail' candidate.id %}" class="btn btn-outline-primary btn-sm">
+                                        Подробнее
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 {% empty %}
                 <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        {% if search_query or min_experience %}
+                    <div class="alert alert-warning text-center">
+                        {% if search_query or min_experience or request.GET.education or request.GET.position_level %}
                         <h6>Кандидаты не найдены</h6>
-                        <p class="mb-0">Попробуйте изменить критерии поиска</p>
+                        <p class="mb-0">Попробуйте изменить критерии поиска или <a href="{% url 'candidate_list' %}">сбросить фильтры</a></p>
                         {% else %}
                         <h6>Пока нет кандидатов</h6>
-                        <p class="mb-0">Начните с добавления первого кандидата в базу</p>
+                        <p class="mb-0">
+                            Начните с добавления первого кандидата в базу
+                            {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+                            <br><a href="{% url 'candidate_create' %}" class="btn btn-success btn-sm mt-2">Добавить первого кандидата</a>
+                            {% endif %}
+                        </p>
                         {% endif %}
                     </div>
                 </div>
@@ -164,22 +231,40 @@
                 <ul class="pagination justify-content-center">
                     {% if candidates.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ candidates.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">Назад</a>
+                        <a class="page-link" href="?page={{ candidates.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}{% if request.GET.education %}&education={{ request.GET.education }}{% endif %}{% if request.GET.position_level %}&position_level={{ request.GET.position_level }}{% endif %}">
+                            ← Назад
+                        </a>
                     </li>
                     {% endif %}
 
                     {% for num in candidates.paginator.page_range %}
-                    <li class="page-item {% if candidates.number == num %}active{% endif %}">
-                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">{{ num }}</a>
-                    </li>
+                        {% if candidates.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > candidates.number|add:'-3' and num < candidates.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}{% if request.GET.education %}&education={{ request.GET.education }}{% endif %}{% if request.GET.position_level %}&position_level={{ request.GET.position_level }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
                     {% endfor %}
 
                     {% if candidates.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ candidates.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">Вперед</a>
+                        <a class="page-link" href="?page={{ candidates.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}{% if request.GET.education %}&education={{ request.GET.education }}{% endif %}{% if request.GET.position_level %}&position_level={{ request.GET.position_level }}{% endif %}">
+                            Вперед →
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        Страница {{ candidates.number }} из {{ candidates.paginator.num_pages }}
+                        • Показано {{ candidates|length }} из {{ total_candidates }} кандидатов
+                    </small>
+                </div>
             </nav>
             {% endif %}
         </div>
@@ -188,10 +273,26 @@
 
 <style>
 .card {
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, transform 0.2s;
+    border: 1px solid #e9ecef;
 }
 .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+.card-title a {
+    color: #212529;
+    font-weight: 600;
+}
+.card-title a:hover {
+    color: #0d6efd;
+}
+.badge {
+    font-size: 0.75em;
+}
+.page-link {
+    border-radius: 0.375rem;
+    margin: 0 2px;
 }
 </style>
 {% endblock %}

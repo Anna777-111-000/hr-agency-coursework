@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.candidate_list, name='candidate_list'),
     path('<int:candidate_id>/', views.candidate_detail, name='candidate_detail'),
     path('create/', views.candidate_create, name='candidate_create'),
+    path('<int:candidate_id>/download-resume/', views.download_resume, name='download_resume'),
 
     # Формы кадров
     path('personnel/form/', views.personnel_form, name='personnel_form'),
