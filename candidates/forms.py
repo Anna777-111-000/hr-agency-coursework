@@ -174,7 +174,7 @@ class RecruiterCandidateForm(forms.ModelForm):
         fields = [
             # Основная информация
             'last_name', 'first_name', 'patronymic',
-            'email', 'phone',
+            'email', 'phone', 'age',
 
             # Профессиональные данные
             'specialization', 'position_level', 'experience_years',

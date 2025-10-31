@@ -39,7 +39,8 @@
                         <a class="nav-link" href="{% url 'candidate_list' %}">👥 Кандидаты</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'vacancy_list' %}">💼 Вакансии</a>
+                        <a class="nav-link" href="{% url 'vacancy_list' %}">
+                        <i class="fas fa-briefcase"></i> 💼 Вакансии </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'personnel_form_list' %}">📋 Анкеты</a>
@@ -50,7 +51,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'candidate_analytics' %}">📊 Аналитика</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'candidate_list' %}">
+                             <i class="fas fa-calendar-alt"></i> Собеседования </a>
+                    </li>
                     {% endif %}
+
 
                     <!-- Меню только для администраторов (ТОЛЬКО админы) -->
                     {% if user.role == 'administrator' %}

@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from vacancies.models import Skill
 
 
@@ -8,14 +9,14 @@ class Candidate(models.Model):
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     patronymic = models.CharField(max_length=100, blank=True, verbose_name="Отчество")
     email = models.EmailField(unique=True, verbose_name="Email")
-    phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")  # ИЗМЕНИЛИ с 15 на 20
+    phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")
     age = models.PositiveIntegerField(null=True, blank=True, verbose_name="Возраст")
     experience_years = models.PositiveIntegerField(default=0, verbose_name="Опыт работы (лет)")
 
     # Профессиональная информация
     specialization = models.CharField(max_length=200, blank=True, verbose_name="Специализация")
     position_level = models.CharField(max_length=20, choices=[
-        ('intern', 'Intern'),  # ДОБАВИЛИ intern
+        ('intern', 'Intern'),
         ('junior', 'Junior'),
         ('middle', 'Middle'),
         ('senior', 'Senior'),
@@ -27,7 +28,7 @@ class Candidate(models.Model):
         ('employed', 'Трудоустроен'),
         ('unemployed', 'В поиске'),
         ('part_time', 'Частичная занятость'),
-        ('student', 'Студент')  # ДОБАВИЛИ student
+        ('student', 'Студент')
     ], default='unemployed', verbose_name="Статус трудоустройства")
 
     work_format = models.CharField(max_length=20, choices=[
@@ -113,6 +114,7 @@ class Application(models.Model):
                                 verbose_name="Вакансия")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Статус заявки")
     applied_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата отклика")
+    notes = models.TextField(blank=True, verbose_name="Комментарий рекрутера")
 
     class Meta:
         unique_together = ['candidate', 'vacancy']
@@ -121,6 +123,47 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.candidate} -> {self.vacancy} ({self.status})"
+
+
+class Interview(models.Model):
+    INTERVIEW_TYPE_CHOICES = (
+        ('phone', '📞 Телефонное'),
+        ('video', '🎥 Видео-собеседование'),
+        ('in_person', '👥 Личная встреча'),
+        ('technical', '💻 Техническое'),
+        ('hr', '👔 HR-собеседование'),
+    )
+
+    STATUS_CHOICES = (
+        ('scheduled', 'Запланировано'),
+        ('completed', 'Завершено'),
+        ('cancelled', 'Отменено'),
+        ('no_show', 'Кандидат не явился'),
+    )
+
+    candidate = models.ForeignKey('Candidate', on_delete=models.CASCADE, related_name='interviews')
+    scheduled_date = models.DateTimeField(verbose_name="Дата и время собеседования")
+    interview_type = models.CharField(max_length=20, choices=INTERVIEW_TYPE_CHOICES, verbose_name="Тип собеседования")
+    notes = models.TextField(blank=True, verbose_name="Заметки")
+    scheduled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Запланировал")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled', verbose_name="Статус")
+    feedback = models.TextField(blank=True, verbose_name="Отзыв после собеседования")
+    result = models.CharField(max_length=20, choices=[('positive', 'Положительный'), ('negative', 'Отрицательный'),
+                                                      ('neutral', 'Нейтральный')], blank=True, verbose_name="Результат")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    reminder_sent = models.BooleanField(default=False, verbose_name="Напоминание отправлено")
+    reminder_date = models.DateTimeField(null=True, blank=True, verbose_name="Дата напоминания")
+
+    def __str__(self):
+        return f"Собеседование {self.candidate} - {self.scheduled_date.strftime('%d.%m.%Y %H:%M')}"
+
+    class Meta:
+        verbose_name = "Собеседование"
+        verbose_name_plural = "Собеседования"
+        ordering = ['-scheduled_date']
 
 
 # форма кандидатов

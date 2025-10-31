@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Предстоящие собеседования - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>📅 Предстоящие собеседования</h1>
+            <p class="text-muted">Управление запланированными собеседованиями</p>
+        </div>
+        <a href="{% url 'candidate_list' %}" class="btn btn-outline-secondary">
+            ← Назад к кандидатам
+        </a>
+    </div>
+
+    <!-- Ближайшие собеседования (на этой неделе) -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                ⏰ Ближайшие собеседования (на этой неделе)
+                <span class="badge bg-danger">{{ upcoming_interviews.count }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if upcoming_interviews %}
+                {% for interview in upcoming_interviews %}
+                <div class="interview-item mb-3 p-3 border rounded {% if forloop.last %}mb-0{% endif %}">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">
+                                <a href="{% url 'candidate_detail' interview.candidate.id %}" class="text-decoration-none">
+                                    {{ interview.candidate.last_name }} {{ interview.candidate.first_name }} {{ interview.candidate.patronymic }}
+                                </a>
+                            </h6>
+                            <div class="small text-muted">
+                                <strong>Дата:</strong> {{ interview.scheduled_date|date:"d.m.Y в H:i" }}
+                                • <strong>Тип:</strong> {{ interview.get_interview_type_display }}
+                                {% if interview.candidate.specialization %}
+                                • <strong>Должность:</strong> {{ interview.candidate.specialization }}
+                                {% endif %}
+                            </div>
+                            {% if interview.notes %}
+                            <div class="mt-1">
+                                <small class="text-muted">{{ interview.notes }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'candidate_detail' interview.candidate.id %}" class="btn btn-outline-primary btn-sm">
+                                    👤 Профиль
+                                </a>
+                                <button class="btn btn-outline-success btn-sm" onclick="alert('Функция переноса собеседования в разработке')">
+                                    📅 Перенести
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                    <p>Нет ближайших собеседований</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Собеседования на следующей неделе и позже -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                📋 Собеседования на следующей неделе и позже
+                <span class="badge bg-secondary">{{ later_interviews.count }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if later_interviews %}
+                {% for interview in later_interviews %}
+                <div class="interview-item mb-2 p-2 border rounded {% if forloop.last %}mb-0{% endif %}">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <strong>
+                                <a href="{% url 'candidate_detail' interview.candidate.id %}" class="text-decoration-none">
+                                    {{ interview.candidate.last_name }} {{ interview.candidate.first_name }}
+                                </a>
+                            </strong>
+                            <div class="small text-muted">
+                                {{ interview.scheduled_date|date:"d.m.Y в H:i" }} • {{ interview.get_interview_type_display }}
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'candidate_detail' interview.candidate.id %}" class="btn btn-outline-primary btn-sm">
+                                Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted py-3">
+                    <p>Нет запланированных собеседований</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.interview-item {
+    transition: background-color 0.2s;
+}
+.interview-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}
