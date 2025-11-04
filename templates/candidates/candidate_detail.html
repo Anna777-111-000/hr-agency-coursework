@@ -282,10 +282,15 @@
                             📋 Прикрепить к вакансии
                         </button>
 
+                        <!-- Редактировать кандидата -->
+                        <a href="{% url 'candidate_edit' candidate.id %}" class="btn btn-outline-warning">
+                            ✏️ Редактировать
+                        </a>
+
                         <!-- Действия с резюме -->
                         {% if candidate.resume %}
                             {% if candidate.resume.url %}
-                            <a href="{{ candidate.resume.url }}" class="btn btn-outline-warning" target="_blank">
+                            <a href="{{ candidate.resume.url }}" class="btn btn-outline-info" target="_blank">
                                 📄 Просмотреть резюме
                             </a>
                             {% endif %}
@@ -338,47 +343,6 @@
     </div>
 </div>
 
-<!-- Модальное окно для планирования собеседования -->
-<div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-labelledby="scheduleInterviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="scheduleInterviewModalLabel">📞 Запланировать собеседование</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="scheduleInterviewForm" method="post" action="{% url 'schedule_interview' candidate.id %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="interviewDate" class="form-label">Дата и время собеседования:</label>
-                        <input type="datetime-local" class="form-control" id="interviewDate" name="interview_date" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="interviewType" class="form-label">Тип собеседования:</label>
-                        <select class="form-select" id="interviewType" name="interview_type" required>
-                            <option value="">-- Выберите тип --</option>
-                            <option value="phone">📞 Телефонное</option>
-                            <option value="video">🎥 Видео-собеседование</option>
-                            <option value="in_person">👥 Личная встреча</option>
-                            <option value="technical">💻 Техническое</option>
-                            <option value="hr">👔 HR-собеседование</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="interviewNotes" class="form-label">Дополнительная информация:</label>
-                        <textarea class="form-control" id="interviewNotes" name="notes" rows="3"
-                                  placeholder="Место проведения, контактное лицо, дополнительные детали..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="submit" form="scheduleInterviewForm" class="btn btn-info">Запланировать</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
 .card {
     border: 1px solid #e9ecef;
@@ -415,16 +379,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Устанавливаем минимальную дату для собеседования - текущая дата
-    const interviewDate = document.getElementById('interviewDate');
-    if (interviewDate) {
-        const now = new Date();
-        // Добавляем 1 час к текущему времени как минимальное значение
-        now.setHours(now.getHours() + 1);
-        const minDate = now.toISOString().slice(0, 16);
-        interviewDate.min = minDate;
-    }
-
     // Автоматически скрываем сообщения через 5 секунд
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
@@ -434,20 +388,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 5000);
 
-    // Обработка успешного сохранения форм
+    // Обработка успешного сохранения формы прикрепления к вакансии
     const attachForm = document.getElementById('attachVacancyForm');
-    const interviewForm = document.getElementById('scheduleInterviewForm');
-
     if (attachForm) {
         attachForm.addEventListener('submit', function() {
             const modal = bootstrap.Modal.getInstance(document.getElementById('attachVacancyModal'));
-            modal.hide();
-        });
-    }
-
-    if (interviewForm) {
-        interviewForm.addEventListener('submit', function() {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('scheduleInterviewModal'));
             modal.hide();
         });
     }

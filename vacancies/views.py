@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Vacancy, Skill
 from .forms import VacancyForm, SkillForm
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def role_required(allowed_roles):
     """Декоратор для проверки ролей пользователя"""
@@ -22,43 +22,23 @@ def role_required(allowed_roles):
 
 @login_required
 def vacancy_list(request):
-    """Список вакансий с фильтрацией"""
     vacancies_list = Vacancy.objects.all().order_by('-created_at')
-
-    # Фильтрация по статусу
-    status_filter = request.GET.get('status', '')
-    if status_filter:
-        vacancies_list = vacancies_list.filter(status=status_filter)
-
-    # Поиск по названию
-    search_query = request.GET.get('search', '')
-    if search_query:
-        vacancies_list = vacancies_list.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query)
-        )
-
-    # Фильтрация по формату работы
-    work_format_filter = request.GET.get('work_format', '')
-    if work_format_filter:
-        vacancies_list = vacancies_list.filter(work_format=work_format_filter)
-
-    # Статистика
-    total_vacancies = vacancies_list.count()
-    open_vacancies = vacancies_list.filter(status='open').count()
 
     # Пагинация
     paginator = Paginator(vacancies_list, 10)
-    page_number = request.GET.get('page')
-    vacancies = paginator.get_page(page_number)
+    page_number = request.GET.get('page', 1)  # Добавляем значение по умолчанию
+
+    try:
+        vacancies = paginator.page(page_number)
+    except PageNotAnInteger:
+        # Если page не integer, показываем первую страницу
+        vacancies = paginator.page(1)
+    except EmptyPage:
+        # Если page вне диапазона, показываем последнюю страницу
+        vacancies = paginator.page(paginator.num_pages)
 
     return render(request, 'vacancies/vacancy_list.html', {
-        'vacancies': vacancies,
-        'search_query': search_query,
-        'status_filter': status_filter,
-        'work_format_filter': work_format_filter,
-        'total_vacancies': total_vacancies,
-        'open_vacancies': open_vacancies,
+        'vacancies': vacancies
     })
 
 
