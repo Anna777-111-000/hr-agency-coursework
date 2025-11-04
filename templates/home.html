@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %}Главная - HR System{% endblock %}
+{% block title %}Административная панель - HR System{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    {% if user.is_admin %}
+    {% if user.role == 'admin' %}
         <!-- Контент для АДМИНИСТРАТОРА -->
         <div class="row">
             <div class="col-12">
@@ -14,7 +14,7 @@
                     </div>
                     <div class="card-body">
                         <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Системный администратор</strong></p>
-                        
+
                         <div class="alert alert-info">
                             <h5>Ваша роль: <strong>Администратор системы</strong></h5>
                             <p class="mb-0">Вы отвечаете за техническую поддержку и настройку HR-системы</p>
@@ -33,30 +33,6 @@
                                 </div>
                             </div>
 
-                            <!-- Карточка системной аналитики -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100">
-                                    <div class="card-body text-center">
-                                        <h3>📊</h3>
-                                        <h5 class="card-title">Системная аналитика</h5>
-                                        <p class="card-text">Мониторинг работы системы, статистика использования, логи</p>
-                                        <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Перейти</a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Карточка настроек системы -->
-                            <div class="col-md-6 mb-4">
-                                <div class="card h-100">
-                                    <div class="card-body text-center">
-                                        <h3>⚙️</h3>
-                                        <h5 class="card-title">Настройки системы</h5>
-                                        <p class="card-text">Конфигурация системы, параметры безопасности, резервное копирование</p>
-                                        <a href="{% url 'system_settings' %}" class="btn btn-primary">Перейти</a>
-                                    </div>
-                                </div>
-                            </div>
-
                             <!-- Карточка админки Django -->
                             <div class="col-md-6 mb-4">
                                 <div class="card h-100">
@@ -69,12 +45,51 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Быстрая статистика системы -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">📈 Быстрая статистика системы</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-md-3 mb-3">
+                                                <div class="border rounded p-3 bg-primary text-white">
+                                                    <h3>{{ total_users|default:"0" }}</h3>
+                                                    <small>Всего пользователей</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="border rounded p-3 bg-success text-white">
+                                                    <h3>{{ active_users|default:"0" }}</h3>
+                                                    <small>Активных пользователей</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="border rounded p-3 bg-info text-white">
+                                                    <h3>{{ system_uptime|default:"1" }}</h3>
+                                                    <small>Дней работы</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 mb-3">
+                                                <div class="border rounded p-3 bg-warning text-dark">
+                                                    <h3>{{ last_backup|default:"-" }}</h3>
+                                                    <small>Последнее резервное копирование</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-    {% elif user.is_manager %}
+    {% elif user.role == 'manager' %}
         <!-- Контент для МЕНЕДЖЕРА -->
         <div class="row">
             <div class="col-12">
@@ -84,7 +99,7 @@
                     </div>
                     <div class="card-body">
                         <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Менеджер HR-отдела</strong></p>
-                        
+
                         <div class="alert alert-warning">
                             <h5>Ваша роль: <strong>Менеджер</strong></h5>
                             <p class="mb-0">Вы управляете операционной деятельностью HR-отдела</p>
@@ -139,7 +154,7 @@
                     </div>
                     <div class="card-body">
                         <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Рекрутер</strong></p>
-                        
+
                         <div class="alert alert-info">
                             <h5>Ваша роль: <strong>Рекрутер</strong></h5>
                             <p class="mb-0">Вы занимаетесь поиском и подбором кандидатов</p>
@@ -172,7 +187,6 @@
                 </div>
             </div>
         </div>
-
     {% endif %}
 </div>
 {% endblock %}

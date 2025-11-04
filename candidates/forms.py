@@ -345,8 +345,14 @@ class RecruiterCandidateForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if Candidate.objects.filter(email=email).exists():
-            raise forms.ValidationError("Кандидат с таким email уже существует")
+        # При редактировании исключаем текущего кандидата из проверки
+        if self.instance and self.instance.pk:
+            if Candidate.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError("Кандидат с таким email уже существует")
+        else:
+            # При создании проверяем как обычно
+            if Candidate.objects.filter(email=email).exists():
+                raise forms.ValidationError("Кандидат с таким email уже существует")
         return email
 
     def clean_phone(self):

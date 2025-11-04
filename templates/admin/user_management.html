@@ -1,187 +1,172 @@
 {% extends 'base.html' %}
 
-{% block title %}Управление пользователями{% endblock %}
+{% block title %}Управление пользователями - HR System{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>👥 Управление пользователями</h1>
-        <a href="{% url 'admin:create_user' %}" class="btn btn-success btn-lg">
-            ➕ Создать пользователя
-        </a>
-    </div>
-
-    <!-- Сообщения об успехе/ошибках -->
-    {% if messages %}
-    <div class="mt-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>👥 Управление пользователями</h1>
+            <p class="lead">Создание, редактирование и управление пользователями системы</p>
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
 
     <!-- Статистика по ролям -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-dark">
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
                 <div class="card-body text-center">
-                    <h2>{{ users|length }}</h2>
-                    <p>Всего пользователей</p>
+                    <h3>{{ role_stats.admin }}</h3>
+                    <p class="mb-0">Администраторов</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-danger">
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
                 <div class="card-body text-center">
-                    <h2>{{ admins_count }}</h2>
-                    <p>Администраторов</p>
+                    <h3>{{ role_stats.manager }}</h3>
+                    <p class="mb-0">Менеджеров</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
                 <div class="card-body text-center">
-                    <h2>{{ managers_count }}</h2>
-                    <p>Менеджеров</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body text-center">
-                    <h2>{{ recruiters_count }}</h2>
-                    <p>Рекрутеров</p>
+                    <h3>{{ role_stats.recruiter }}</h3>
+                    <p class="mb-0">Рекрутеров</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Список пользователей -->
-    <div class="card mt-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">📋 Список пользователей</h5>
-            <span class="badge bg-light text-dark">{{ users|length }} пользователей</span>
-        </div>
-        <div class="card-body">
-            {% if users %}
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Логин</th>
-                            <th>Имя</th>
-                            <th>Email</th>
-                            <th>Роль</th>
-                            <th>Дата регистрации</th>
-                            <th>Статус</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user_obj in users %}
-                        <tr>
-                            <td>
-                                <strong>{{ user_obj.username }}</strong>
-                                {% if user_obj.username == 'systemadmin' %}
-                                <span class="badge bg-danger ms-1">Системный</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if user_obj.first_name or user_obj.last_name %}
-                                    {{ user_obj.first_name }} {{ user_obj.last_name }}
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if user_obj.email %}
-                                    {{ user_obj.email }}
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge
-                                    {% if user_obj.role == 'administrator' %}bg-danger
-                                    {% elif user_obj.role == 'manager' %}bg-warning text-dark
-                                    {% else %}bg-info{% endif %}">
-                                    {% if user_obj.role == 'administrator' %}Администратор
-                                    {% elif user_obj.role == 'manager' %}Менеджер
-                                    {% elif user_obj.role == 'recruiter' %}Рекрутер
-                                    {% else %}{{ user_obj.role }}{% endif %}
-                                </span>
-                            </td>
-                            <td>{{ user_obj.date_joined|date:"d.m.Y H:i" }}</td>
-                            <td>
-                                {% if user_obj.is_active %}
-                                <span class="badge bg-success">Активен</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Неактивен</span>
-                                {% endif %}
-                            </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{% url 'admin:edit_user' user_obj.id %}" class="btn btn-outline-primary" title="Редактировать">
-                                            ✏️
-                                        </a>
-                                        <a href="{% url 'admin:delete_user' user_obj.id %}" class="btn btn-outline-danger" title="Удалить">
-                                            🗑️
-                                        </a>
-                                    </div>
-                                </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <div class="text-muted mb-3">
-                    <h4>😔 Пользователи не найдены</h4>
-                    <p>Создайте первого пользователя для работы с системой</p>
+    <div class="row">
+        <!-- Форма создания пользователя -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">➕ Создать пользователя</h5>
                 </div>
-                <a href="{% url 'admin:create_user' %}" class="btn btn-success btn-lg">
-                    ➕ Создать первого пользователя
-                </a>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_user">
+
+                        <div class="mb-3">
+                            <label class="form-label">Логин *</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Пароль *</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Телефон</label>
+                            <input type="text" class="form-control" name="phone_number">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Роль *</label>
+                            <select class="form-select" name="role" required>
+                                <option value="recruiter">Рекрутер</option>
+                                <option value="manager">Менеджер</option>
+                                <option value="admin">Администратор</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Создать пользователя</button>
+                    </form>
+                </div>
             </div>
-            {% endif %}
+        </div>
+
+        <!-- Список пользователей -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Список пользователей ({{ total_users }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Логин</th>
+                                    <th>Роль</th>
+                                    <th>Email</th>
+                                    <th>Телефон</th>
+                                    <th>Дата регистрации</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user.username }}</strong>
+                                        {% if user == request.user %}
+                                        <span class="badge bg-primary">Вы</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge
+                                            {% if user.role == 'admin' %}bg-danger
+                                            {% elif user.role == 'manager' %}bg-warning
+                                            {% else %}bg-info{% endif %}">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.email|default:"-" }}</td>
+                                    <td>{{ user.phone_number|default:"-" }}</td>
+                                    <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <!-- Форма изменения роли -->
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="change_role">
+                                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                                <select name="new_role" class="form-select form-select-sm"
+                                                        onchange="this.form.submit()"
+                                                        {% if user == request.user %}disabled{% endif %}>
+                                                    <option value="recruiter" {% if user.role == 'recruiter' %}selected{% endif %}>Рекрутер</option>
+                                                    <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>Менеджер</option>
+                                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Админ</option>
+                                                </select>
+                                            </form>
+
+                                            <!-- Кнопка удаления -->
+                                            {% if user != request.user %}
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_user">
+                                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                        onclick="return confirm('Удалить пользователя {{ user.username }}?')">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Нет пользователей</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-<!-- JavaScript для подтверждения удаления -->
-<script>
-function confirmDelete(userId, username) {
-    if (confirm(`Вы уверены, что хотите удалить пользователя "${username}"?`)) {
-        // Здесь будет запрос на удаление
-        alert(`Пользователь ${username} будет удален (функционал в разработке)`);
-    }
-}
-
-function editUser(userId) {
-    // Здесь будет редактирование
-    alert(`Редактирование пользователя ID: ${userId} (функционал в разработке)`);
-}
-</script>
-
-<style>
-.table th {
-    border-top: none;
-    font-weight: 600;
-}
-.badge {
-    font-size: 0.75em;
-}
-.card {
-    border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-.card-header {
-    border-bottom: 1px solid rgba(0,0,0,.125);
-    font-weight: 600;
-}
-</style>
 {% endblock %}

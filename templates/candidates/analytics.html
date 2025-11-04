@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}Аналитика рекрутинга - HR System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>📊 Аналитика рекрутинга</h1>
+            <p class="lead">Метрики и отчеты по работе отдела</p>
+        </div>
+    </div>
+
+    <!-- Основная статистика -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_candidates|default:0 }}</h3>
+                    <p class="mb-0">Кандидатов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_vacancies|default:0 }}</h3>
+                    <p class="mb-0">Вакансий</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_applications|default:0 }}</h3>
+                    <p class="mb-0">Заявок</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ conversion_rate|default:0 }}%</h3>
+                    <p class="mb-0">Конверсия</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_interviews|default:0 }}</h3>
+                    <p class="mb-0">Собеседований</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ avg_time_to_hire|default:0 }}</h3>
+                    <p class="mb-0">Дней до найма</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Левая колонка -->
+        <div class="col-md-6">
+            <!-- Статистика по опыту -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">📈 Распределение по опыту</h5>
+                </div>
+                <div class="card-body">
+                    {% if total_candidates > 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Junior (< 2 лет)</span>
+                            <span class="fw-bold">{{ experience_stats.junior|default:0 }} ({% widthratio experience_stats.junior|default:0 total_candidates 100 %}%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-primary" style="width: {% widthratio experience_stats.junior|default:0 total_candidates 100 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Middle (2-5 лет)</span>
+                            <span class="fw-bold">{{ experience_stats.middle|default:0 }} ({% widthratio experience_stats.middle|default:0 total_candidates 100 %}%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" style="width: {% widthratio experience_stats.middle|default:0 total_candidates 100 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Senior (> 5 лет)</span>
+                            <span class="fw-bold">{{ experience_stats.senior|default:0 }} ({% widthratio experience_stats.senior|default:0 total_candidates 100 %}%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info" style="width: {% widthratio experience_stats.senior|default:0 total_candidates 100 %}%"></div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Нет данных о кандидатах</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Статус заявок -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">🎯 Статус заявок</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border rounded p-3 bg-success text-white">
+                                <h4>{{ approved_applications|default:0 }}</h4>
+                                <small>Одобрено</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-3 bg-warning text-dark">
+                                <h4>{{ pending_applications|default:0 }}</h4>
+                                <small>На рассмотрении</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border rounded p-3 bg-danger text-white">
+                                <h4>{{ rejected_applications|default:0 }}</h4>
+                                <small>Отклонено</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Источники кандидатов -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">📥 Источники кандидатов</h5>
+                </div>
+                <div class="card-body">
+                    {% if source_stats %}
+                    <ul class="list-group">
+                        {% for source, count in source_stats.items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ source }}
+                            <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted text-center">Нет данных об источниках</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая колонка -->
+        <div class="col-md-6">
+            <!-- Активность по месяцам -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">📅 Активность по месяцам</h5>
+                </div>
+                <div class="card-body">
+                    {% if monthly_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Месяц</th>
+                                    <th>Кандидаты</th>
+                                    <th>Собеседования</th>
+                                    <th>Наймы</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month in monthly_stats %}
+                                <tr>
+                                    <td>{{ month.month }}</td>
+                                    <td>{{ month.candidates|default:0 }}</td>
+                                    <td>{{ month.interviews|default:0 }}</td>
+                                    <td>{{ month.hires|default:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Нет данных за последние месяцы</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Топ вакансий -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">🏆 Топ вакансий</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_vacancies %}
+                    {% for vacancy in top_vacancies %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ vacancy.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ vacancy.applications_count }} заявок</small>
+                        </div>
+                        <span class="badge {% if vacancy.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if vacancy.status == 'open' %}Открыта{% else %}Закрыта{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">Нет данных о вакансиях</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Эффективность рекрутеров -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">👥 Эффективность рекрутеров</h5>
+                </div>
+                <div class="card-body">
+                    {% if recruiter_stats %}
+                    {% for recruiter in recruiter_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ recruiter.name }}</strong>
+                            <br>
+                            <small class="text-muted">Конверсия: {{ recruiter.conversion_rate|default:0 }}%</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">{{ recruiter.candidates|default:0 }}</div>
+                            <small class="text-muted">кандидатов</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">Нет данных о рекрутерах</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Метрики производительности -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">⚡ Ключевые метрики</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-primary">{{ time_to_fill|default:0 }} дн.</h4>
+                                <small>Среднее время закрытия вакансии</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-success">{{ candidate_satisfaction|default:0 }}%</h4>
+                                <small>Удовлетворенность кандидатов</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-info">{{ cost_per_hire|default:0 }} руб.</h4>
+                                <small>Стоимость одного найма</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-warning">{{ retention_rate|default:0 }}%</h4>
+                                <small>Удержание через 6 месяцев</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка назад -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary">
+                ← Назад к панели управления
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+}
+.progress {
+    height: 20px;
+}
+.border-rounded {
+    border-radius: 0.5rem;
+}
+.list-group-item {
+    border: 1px solid #e9ecef;
+    margin-bottom: 5px;
+    border-radius: 0.375rem;
+}
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %}

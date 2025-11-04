@@ -21,6 +21,11 @@ urlpatterns = [
     path('admin/settings/', views.system_settings, name='system_settings'),
     path('admin/export/', views.candidate_export, name='candidate_export'),
 
-    # Менеджерские URLs
+    # Менеджер
     path('manager/dashboard/', views.manager_dashboard, name='manager_dashboard'),
+
+    # Аналитика
+    path('analytics/', views.recruitment_analytics, name='recruitment_analytics'),
+    path('personnel-form/', views.personnel_form, name='personnel_form'),
+    path('personnel-forms/', views.personnel_form_list, name='personnel_form_list'),
 ]
