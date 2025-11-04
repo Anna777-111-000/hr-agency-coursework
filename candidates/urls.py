@@ -1,3 +1,4 @@
+# candidates/urls.py
 from django.urls import path
 from . import views
 
@@ -8,11 +9,14 @@ urlpatterns = [
     path('create/', views.candidate_create, name='candidate_create'),
     path('<int:candidate_id>/download-resume/', views.download_resume, name='download_resume'),
     path('<int:candidate_id>/attach-vacancy/', views.attach_candidate_to_vacancy, name='attach_candidate_to_vacancy'),
-    path('<int:candidate_id>/schedule-interview/', views.schedule_interview, name='schedule_interview'),
     path('<int:candidate_id>/edit/', views.candidate_edit, name='candidate_edit'),
+
     # Формы кадров
     path('personnel/form/', views.personnel_form, name='personnel_form'),
     path('personnel/forms/', views.personnel_form_list, name='personnel_form_list'),
+    path('personnel/forms/<int:form_id>/', views.personnel_form_detail, name='personnel_form_detail'),
+    path('personnel/forms/<int:form_id>/approve/', views.personnel_form_approve, name='personnel_form_approve'),
+    path('personnel/forms/<int:form_id>/reject/', views.personnel_form_reject, name='personnel_form_reject'),
 
     # Только для администраторов
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
@@ -26,6 +30,4 @@ urlpatterns = [
 
     # Аналитика
     path('analytics/', views.recruitment_analytics, name='recruitment_analytics'),
-    path('personnel-form/', views.personnel_form, name='personnel_form'),
-    path('personnel-forms/', views.personnel_form_list, name='personnel_form_list'),
 ]

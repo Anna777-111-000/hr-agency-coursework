@@ -188,6 +188,22 @@ class PersonnelForm(models.Model):
         ('widowed', 'Вдовец/Вдова'),
     )
 
+    CANDIDATE_STATUS_CHOICES = (
+        ('new', 'Новый'),
+        ('reviewed', 'Рассмотрен'),
+        ('interviewed', 'Собеседование пройдено'),
+        ('accepted', 'Принят'),
+        ('rejected', 'Отклонен'),
+    )
+
+    candidate_status = models.CharField(
+        max_length=20,
+        choices=CANDIDATE_STATUS_CHOICES,
+        default='new',
+        verbose_name="Статус кандидата"
+    )
+
+
     skills = models.ManyToManyField('vacancies.Skill', blank=True, verbose_name="Навыки")
     # Основная информация
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")

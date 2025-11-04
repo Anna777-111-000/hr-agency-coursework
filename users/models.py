@@ -11,6 +11,20 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='recruiter')
     phone_number = models.CharField(max_length=20, blank=True)
 
+    def save(self, *args, **kwargs):
+        # Автоматически устанавливаем флаги для администраторов
+        if self.role == 'admin':
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.role == 'manager':
+            self.is_staff = True
+            self.is_superuser = False
+        else:  # recruiter
+            self.is_staff = False
+            self.is_superuser = False
+
+        super().save(*args, **kwargs)
+
     def get_role_display(self):
         return dict(self.ROLE_CHOICES).get(self.role, self.role)
 

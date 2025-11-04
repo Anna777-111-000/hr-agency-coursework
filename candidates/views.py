@@ -259,40 +259,6 @@ def attach_candidate_to_vacancy(request, candidate_id):
     return redirect('candidate_detail', candidate_id=candidate_id)
 
 
-@login_required
-def schedule_interview(request, candidate_id):
-    """Планирование собеседования"""
-    candidate = get_object_or_404(Candidate, id=candidate_id)
-
-    if request.method == 'POST':
-        interview_date = request.POST.get('interview_date')
-        interview_type = request.POST.get('interview_type')
-        notes = request.POST.get('notes', '')
-
-        if not interview_date or not interview_type:
-            messages.error(request, "Заполните все обязательные поля")
-            return redirect('candidate_detail', candidate_id=candidate_id)
-
-        try:
-            # Создаем запись о собеседовании
-            from .models import Interview
-            interview = Interview.objects.create(
-                candidate=candidate,
-                scheduled_date=interview_date,
-                interview_type=interview_type,
-                notes=notes,
-                scheduled_by=request.user,
-                status='scheduled'
-            )
-
-            messages.success(request, f'Собеседование запланировано на {interview_date}')
-
-        except Exception as e:
-            messages.error(request, f"Ошибка при планировании: {str(e)}")
-
-    return redirect('candidate_detail', candidate_id=candidate_id)
-
-
 # Формы кадров
 @role_required(['manager', 'admin'])
 def personnel_form(request):
@@ -813,3 +779,41 @@ def recruitment_analytics(request):
     }
 
     return render(request, 'candidates/analytics.html', context)
+
+
+@role_required(['manager', 'admin'])
+def personnel_form_detail(request, form_id):
+    """Детальная страница анкеты сотрудника"""
+    personnel_form = get_object_or_404(PersonnelForm, id=form_id)
+
+    return render(request, 'candidates/personnel_form_detail.html', {
+        'form': personnel_form
+    })
+
+
+@role_required(['manager', 'admin'])
+def personnel_form_approve(request, form_id):
+    """Одобрение анкеты сотрудника"""
+    personnel_form = get_object_or_404(PersonnelForm, id=form_id)
+
+    if request.method == 'POST':
+        personnel_form.is_approved = True
+        personnel_form.candidate_status = 'accepted'
+        personnel_form.save()
+        messages.success(request, f'Анкета {personnel_form.last_name} {personnel_form.first_name} одобрена!')
+
+    return redirect('personnel_form_list')
+
+
+@role_required(['manager', 'admin'])
+def personnel_form_reject(request, form_id):
+    """Отклонение анкеты сотрудника"""
+    personnel_form = get_object_or_404(PersonnelForm, id=form_id)
+
+    if request.method == 'POST':
+        personnel_form.is_approved = False
+        personnel_form.candidate_status = 'rejected'
+        personnel_form.save()
+        messages.success(request, f'Анкета {personnel_form.last_name} {personnel_form.first_name} отклонена!')
+
+    return redirect('personnel_form_list')

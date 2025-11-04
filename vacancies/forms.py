@@ -1,82 +1,70 @@
 from django import forms
-from .models import Vacancy
-
+from .models import Vacancy, Skill
 
 class VacancyForm(forms.ModelForm):
     class Meta:
         model = Vacancy
         fields = [
             'title', 'description', 'required_skills', 'required_experience',
-            'salary', 'work_format', 'status', 'assigned_recruiter',
-            'location', 'employment_type'
+            'salary', 'work_format', 'status', 'location', 'employment_type'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Например: Python разработчик'
+                'placeholder': 'Введите название вакансии'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 6,
-                'placeholder': 'Подробное описание вакансии, требования, условия работы...'
+                'placeholder': 'Опишите вакансию',
+                'rows': 4
             }),
             'required_skills': forms.SelectMultiple(attrs={
-                'class': 'form-select',
-                'size': '8'
+                'class': 'form-control'
             }),
             'required_experience': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '0',
-                'max': '50'
+                'placeholder': 'Лет опыта'
             }),
             'salary': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Укажите зарплату'
+                'placeholder': 'Зарплата'
             }),
             'work_format': forms.Select(attrs={
-                'class': 'form-select'
+                'class': 'form-control'
             }),
             'status': forms.Select(attrs={
-                'class': 'form-select'
-            }),
-            'assigned_recruiter': forms.Select(attrs={
-                'class': 'form-select'
+                'class': 'form-control'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Город или удаленно'
+                'placeholder': 'Местоположение'
             }),
             'employment_type': forms.Select(attrs={
-                'class': 'form-select'
+                'class': 'form-control'
             }),
         }
         labels = {
-            'assigned_recruiter': 'Назначить рекрутера',
+            'title': 'Название вакансии',
+            'description': 'Описание',
+            'required_skills': 'Требуемые навыки',
+            'required_experience': 'Требуемый опыт (лет)',
+            'salary': 'Зарплата',
             'work_format': 'Формат работы',
+            'status': 'Статус',
+            'location': 'Местоположение',
             'employment_type': 'Тип занятости',
         }
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-
-        # Ограничиваем выбор рекрутеров только пользователями с ролью recruiter
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        self.fields['assigned_recruiter'].queryset = User.objects.filter(role='recruiter')
-
-        # Для новых вакансий устанавливаем создателя
-        if not self.instance.pk and self.request:
-            self.instance.created_by = self.request.user
-
-    def clean_salary(self):
-        salary = self.cleaned_data.get('salary')
-        if salary and salary < 0:
-            raise forms.ValidationError("Зарплата не может быть отрицательной")
-        return salary
-
-    def clean_required_experience(self):
-        experience = self.cleaned_data.get('required_experience')
-        if experience and experience > 50:
-            raise forms.ValidationError("Опыт работы не может превышать 50 лет")
-        return experience
+class SkillForm(forms.ModelForm):
+    class Meta:
+        model = Skill
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите название навыка'
+            })
+        }
+        labels = {
+            'name': 'Название навыка'
+        }

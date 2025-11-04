@@ -1,10 +1,8 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
-from django.core.paginator import Paginator
-from .models import Vacancy
-from .forms import VacancyForm
+from .models import Vacancy, Skill
+from .forms import VacancyForm, SkillForm
 
 
 def role_required(allowed_roles):
@@ -224,3 +222,71 @@ def vacancy_change_status(request, vacancy_id, new_status):
         messages.error(request, "Неверный статус вакансии")
 
     return redirect('vacancy_detail', vacancy_id=vacancy_id)
+
+
+@login_required
+def skill_management(request):
+    """Управление навыками - для менеджеров и администраторов"""
+    if not hasattr(request.user, 'role') or request.user.role not in ['manager', 'admin']:
+        messages.error(request, "У вас нет прав для управления навыками")
+        return redirect('home')
+
+    skills = Skill.objects.all().order_by('name')
+
+    if request.method == 'POST':
+        form = SkillForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Навык успешно создан!')
+            return redirect('skill_management')
+    else:
+        form = SkillForm()
+
+    return render(request, 'vacancies/skill_management.html', {
+        'skills': skills,
+        'form': form
+    })
+
+
+@login_required
+def skill_edit(request, skill_id):
+    """Редактирование навыка"""
+    if not hasattr(request.user, 'role') or request.user.role not in ['manager', 'admin']:
+        messages.error(request, "У вас нет прав для редактирования навыков")
+        return redirect('home')
+
+    skill = get_object_or_404(Skill, id=skill_id)
+
+    if request.method == 'POST':
+        form = SkillForm(request.POST, instance=skill)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Навык успешно обновлен!')
+            return redirect('skill_management')
+    else:
+        form = SkillForm(instance=skill)
+
+    return render(request, 'vacancies/skill_edit.html', {
+        'form': form,
+        'skill': skill
+    })
+
+
+@login_required
+def skill_delete(request, skill_id):
+    """Удаление навыка"""
+    if not hasattr(request.user, 'role') or request.user.role not in ['manager', 'admin']:
+        messages.error(request, "У вас нет прав для удаления навыков")
+        return redirect('home')
+
+    skill = get_object_or_404(Skill, id=skill_id)
+
+    if request.method == 'POST':
+        skill_name = skill.name
+        skill.delete()
+        messages.success(request, f'Навык "{skill_name}" удален!')
+        return redirect('skill_management')
+
+    return render(request, 'vacancies/skill_confirm_delete.html', {
+        'skill': skill
+    })
