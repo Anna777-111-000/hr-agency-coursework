@@ -24,23 +24,60 @@ def role_required(allowed_roles):
 def vacancy_list(request):
     vacancies_list = Vacancy.objects.all().order_by('-created_at')
 
+    # ФИЛЬТРАЦИЯ ДЛЯ РЕКРУТЕРА
+    user_role = getattr(request.user, 'role', '')
+    if user_role == 'recruiter':
+        # Рекрутер видит все вакансии, но можем добавить фильтрацию по назначенному рекрутеру
+        # vacancies_list = vacancies_list.filter(assigned_recruiter=request.user)
+        pass  # Пока оставляем все вакансии для рекрутера
+
+    # ФИЛЬТР ПО СТАТУСУ
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        vacancies_list = vacancies_list.filter(status=status_filter)
+
+    # ФИЛЬТР ПО ФОРМАТУ РАБОТЫ
+    work_format_filter = request.GET.get('work_format', '')
+    if work_format_filter:
+        vacancies_list = vacancies_list.filter(work_format=work_format_filter)
+
+    # ФИЛЬТР ПО ТИПУ ЗАНЯТОСТИ
+    employment_filter = request.GET.get('employment_type', '')
+    if employment_filter:
+        vacancies_list = vacancies_list.filter(employment_type=employment_filter)
+
+    # ПОИСК ПО НАЗВАНИЮ
+    search_query = request.GET.get('search', '')
+    if search_query:
+        vacancies_list = vacancies_list.filter(title__icontains=search_query)
+
+    # Статистика
+    total_vacancies = vacancies_list.count()
+    open_vacancies = vacancies_list.filter(status='open').count()
+    closed_vacancies = vacancies_list.filter(status='closed').count()
+
     # Пагинация
     paginator = Paginator(vacancies_list, 10)
-    page_number = request.GET.get('page', 1)  # Добавляем значение по умолчанию
+    page_number = request.GET.get('page', 1)
 
     try:
         vacancies = paginator.page(page_number)
     except PageNotAnInteger:
-        # Если page не integer, показываем первую страницу
         vacancies = paginator.page(1)
     except EmptyPage:
-        # Если page вне диапазона, показываем последнюю страницу
         vacancies = paginator.page(paginator.num_pages)
 
     return render(request, 'vacancies/vacancy_list.html', {
-        'vacancies': vacancies
+        'vacancies': vacancies,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'work_format_filter': work_format_filter,
+        'employment_filter': employment_filter,
+        'total_vacancies': total_vacancies,
+        'open_vacancies': open_vacancies,
+        'closed_vacancies': closed_vacancies,
+        'user_role': user_role,
     })
-
 
 @role_required(['manager', 'admin'])
 def vacancy_create(request):
