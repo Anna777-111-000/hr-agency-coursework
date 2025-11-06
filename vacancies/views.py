@@ -100,7 +100,6 @@ def vacancy_create(request):
         'title': 'Создать вакансию'
     })
 
-
 @role_required(['manager', 'admin'])
 def vacancy_edit(request, vacancy_id):
     """Редактирование вакансии"""
@@ -112,7 +111,8 @@ def vacancy_edit(request, vacancy_id):
         return redirect('vacancy_list')
 
     if request.method == 'POST':
-        form = VacancyForm(request.POST, instance=vacancy, request=request)
+        # УБРАТЬ request=request - исправленная строка:
+        form = VacancyForm(request.POST, instance=vacancy)
         if form.is_valid():
             vacancy = form.save()
             messages.success(request, f'Вакансия "{vacancy.title}" успешно обновлена!')
@@ -122,14 +122,13 @@ def vacancy_edit(request, vacancy_id):
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
-        form = VacancyForm(instance=vacancy, request=request)
+        form = VacancyForm(instance=vacancy)
 
     return render(request, 'vacancies/vacancy_form.html', {
         'form': form,
         'title': f'Редактировать вакансию: {vacancy.title}',
         'vacancy': vacancy
     })
-
 
 @login_required
 def vacancy_detail(request, vacancy_id):
