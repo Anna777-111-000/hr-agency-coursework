@@ -405,3 +405,34 @@ class RecruiterCandidateForm(forms.ModelForm):
                 print(f"Ошибка создания формы: {e}")
 
         return candidate
+
+
+class PersonnelFormFillForm(forms.ModelForm):
+    """Форма для заполнения деталей анкеты сотрудника"""
+
+    class Meta:
+        model = PersonnelForm
+        fields = [
+            'birth_date', 'birth_place', 'citizenship',
+            'address', 'education', 'institution', 'specialty', 'graduation_year',
+            'marital_status', 'passport_series', 'passport_number',
+            'passport_issued_by', 'passport_issue_date', 'passport_department_code',
+            'inn', 'snils', 'military_duty', 'military_rank', 'military_specialty',
+            'work_experience_total', 'work_experience_specialty', 'additional_info'
+        ]
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'passport_issue_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'passport_issued_by': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'additional_info': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'graduation_year': forms.NumberInput(attrs={'class': 'form-control', 'min': 1950, 'max': 2030}),
+            'work_experience_total': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 70}),
+            'work_experience_specialty': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 70}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['military_duty']:
+                field.widget.attrs['class'] = 'form-control'
