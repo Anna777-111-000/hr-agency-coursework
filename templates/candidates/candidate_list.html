@@ -82,24 +82,7 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Статистика -->
-            <div class="card mt-4">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">📊 Статистика</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-2">
-                        <strong>Всего кандидатов:</strong>
-                        <span class="badge bg-primary float-end">{{ total_candidates }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <strong>С опытом 3+ лет:</strong>
-                        <span class="badge bg-success float-end">{{ experienced_candidates }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </div> <!-- ЗАКРЫВАЮЩИЙ ДИВ ДЛЯ КОЛОНКИ С ФИЛЬТРАМИ -->
 
         <div class="col-md-9">
             <!-- Список кандидатов -->
@@ -155,18 +138,23 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <!-- Статус заявки кандидата -->
-                                        {% with application=candidate.applications.first %}
-                                            {% if application %}
-                                            <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">
-                                                {{ application.get_status_display }}
-                                            </span>
-                                            <br>
-                                            <small class="text-muted">{{ application.vacancy.title|truncatechars:20 }}</small>
-                                            {% else %}
-                                            <span class="badge bg-secondary">Нет заявки</span>
-                                            {% endif %}
-                                        {% endwith %}
+                                        {% if candidate.applications.exists %}
+                                            {% with app=candidate.applications.first %}
+                                                <span class="badge
+                                                    {% if app.status == 'approved' %}bg-success
+                                                    {% elif app.status == 'pending' %}bg-warning
+                                                    {% elif app.status == 'rejected' %}bg-danger
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ app.get_status_display }}
+                                                </span>
+                                                {% if app.vacancy %}
+                                                <br>
+                                                <small class="text-muted">{{ app.vacancy.title|truncatechars:20 }}</small>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Нет заявок</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
