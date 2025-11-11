@@ -289,10 +289,13 @@ def personnel_form_list(request):
 
     print(f"DEBUG: Всего анкет: {forms_list.count()}")
 
-    # Выводим отладочную информацию
+    # ВЫВОДИМ ОТЛАДОЧНУЮ ИНФОРМАЦИЮ
     for form in forms_list:
         candidate_info = f"{form.candidate.first_name} {form.candidate.last_name}" if form.candidate else "НЕТ КАНДИДАТА"
-        print(f"DEBUG: Форма {form.id}: {form.first_name} {form.last_name} -> Кандидат: {candidate_info}")
+        app_status = "Нет заявок"
+        if form.candidate and form.candidate.applications.exists():
+            app_status = form.candidate.applications.first().status
+        print(f"DEBUG: Форма {form.id}: {form.candidate_status} | Заявка: {app_status} | Кандидат: {candidate_info}")
 
     # Поиск
     search_query = request.GET.get('search', '')
