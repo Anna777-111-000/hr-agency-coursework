@@ -281,8 +281,32 @@ def personnel_form(request):
 
 @role_required(['manager', 'admin'])
 def personnel_form_list(request):
-    """Список заполненных форм"""
+    """Список заполненных форм с кандидатами"""
     forms_list = PersonnelForm.objects.all().order_by('-created_at')
+
+    print(f"DEBUG: Всего форм: {forms_list.count()}")
+
+    # Выведем отладочную информацию
+    for form in forms_list:
+        candidate_info = f"{form.candidate.first_name} {form.candidate.last_name}" if form.candidate else "НЕТ КАНДИДАТА"
+        print(f"DEBUG: Форма {form.id}: {form.first_name} {form.last_name} -> Кандидат: {candidate_info}")
+
+    # Поиск по имени, фамилии или email
+    search_query = request.GET.get('search', '')
+    if search_query:
+        forms_list = forms_list.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # Фильтрация по статусу одобрения
+    approval_filter = request.GET.get('approval', '')
+    if approval_filter:
+        if approval_filter == 'approved':
+            forms_list = forms_list.filter(is_approved=True)
+        elif approval_filter == 'pending':
+            forms_list = forms_list.filter(is_approved=False)
 
     # Пагинация
     paginator = Paginator(forms_list, 10)
@@ -294,13 +318,16 @@ def personnel_form_list(request):
     approved_forms = forms_list.filter(is_approved=True).count()
     pending_forms = forms_list.filter(is_approved=False).count()
 
-    return render(request, 'candidates/personnel_form_list.html', {
+    context = {
         'forms': forms,
         'total_forms': total_forms,
         'approved_forms': approved_forms,
-        'pending_forms': pending_forms
-    })
+        'pending_forms': pending_forms,
+        'search_query': search_query,
+        'approval_filter': approval_filter,
+    }
 
+    return render(request, 'candidates/personnel_form_list.html', context)
 
 @login_required
 def manager_dashboard(request):
@@ -775,3 +802,168 @@ def personnel_form_reject(request, form_id):
         messages.success(request, f'Анкета {personnel_form.last_name} {personnel_form.first_name} отклонена!')
 
     return redirect('personnel_form_list')
+
+
+@login_required
+@role_required(['manager', 'admin'])
+def personnel_candidate_list(request):
+    """Чистая рабочая версия - список кандидатов для менеджера"""
+
+    # Основной запрос - кандидаты с формами
+    candidates_with_forms = Candidate.objects.filter(
+        personnel_form__isnull=False
+    ).select_related('personnel_form').order_by('-created_at')
+
+    # Фильтрация по статусу
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        candidates_with_forms = candidates_with_forms.filter(
+            personnel_form__candidate_status=status_filter
+        )
+
+    # Поиск
+    search_query = request.GET.get('search', '')
+    if search_query:
+        candidates_with_forms = candidates_with_forms.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # Пагинация
+    paginator = Paginator(candidates_with_forms, 15)
+    page_number = request.GET.get('page')
+    candidates = paginator.get_page(page_number)
+
+    # Статистика
+    total_candidates = candidates_with_forms.count()
+    approved_count = candidates_with_forms.filter(personnel_form__candidate_status='accepted').count()
+    pending_count = candidates_with_forms.filter(personnel_form__candidate_status='new').count()
+    rejected_count = candidates_with_forms.filter(personnel_form__candidate_status='rejected').count()
+
+    context = {
+        'candidates': candidates,
+        'total_candidates': total_candidates,
+        'approved_count': approved_count,
+        'pending_count': pending_count,
+        'rejected_count': rejected_count,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    }
+
+    return render(request, 'candidates/personnel_candidate_list.html', context)
+
+
+@login_required
+@role_required(['manager', 'admin'])
+def approve_candidate(request, candidate_id):
+    """Одобрение кандидата менеджером"""
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+
+    if hasattr(candidate, 'personnel_form') and candidate.personnel_form:
+        candidate.personnel_form.candidate_status = 'accepted'
+        candidate.personnel_form.is_approved = True
+        candidate.personnel_form.save()
+        messages.success(request, f'Кандидат {candidate.first_name} {candidate.last_name} одобрен!')
+    else:
+        messages.error(request, 'Форма персонала не найдена для этого кандидата')
+
+    return redirect('personnel_candidate_list')
+
+
+@login_required
+@role_required(['manager', 'admin'])
+def reject_candidate(request, candidate_id):
+    """Отклонение кандидата менеджером"""
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+
+    if hasattr(candidate, 'personnel_form') and candidate.personnel_form:
+        candidate.personnel_form.candidate_status = 'rejected'
+        candidate.personnel_form.is_approved = False
+        candidate.personnel_form.save()
+        messages.success(request, f'Кандидат {candidate.first_name} {candidate.last_name} отклонен!')
+    else:
+        messages.error(request, 'Форма персонала не найдена для этого кандидата')
+
+    return redirect('personnel_candidate_list')
+
+
+@login_required
+@role_required(['manager', 'admin'])
+def link_candidates_to_forms(request):
+    """Связывание ВСЕХ кандидатов с формами"""
+
+    candidates = Candidate.objects.all()
+    forms = PersonnelForm.objects.all()
+    linked_count = 0
+    created_count = 0
+
+    print("=== СВЯЗЫВАНИЕ КАНДИДАТОВ С ФОРМАМИ ===")
+
+    for candidate in candidates:
+        # Проверяем, есть ли уже форма у кандидата
+        if hasattr(candidate, 'personnel_form') and candidate.personnel_form:
+            print(f"✅ Уже связан: {candidate.first_name} {candidate.last_name}")
+            continue
+
+        # Ищем подходящую форму по имени, фамилии и email
+        matching_form = None
+        for form in forms:
+            if (form.first_name.lower() == candidate.first_name.lower() and
+                    form.last_name.lower() == candidate.last_name.lower() and
+                    form.email.lower() == candidate.email.lower()):
+                matching_form = form
+                break
+
+        if matching_form and not matching_form.candidate:
+            # Связываем существующую форму
+            matching_form.candidate = candidate
+            matching_form.save()
+            linked_count += 1
+            print(f"🔗 Связан: {candidate.first_name} {candidate.last_name} с формой {matching_form.id}")
+        else:
+            # Если формы нет - создаем новую
+            try:
+                new_form = PersonnelForm.objects.create(
+                    first_name=candidate.first_name,
+                    last_name=candidate.last_name,
+                    patronymic=candidate.patronymic or "",
+                    email=candidate.email,
+                    phone=candidate.phone or "",
+                    # Обязательные поля - заполняем заглушками
+                    birth_date="2000-01-01",
+                    birth_place="Не указано",
+                    address="Не указано",
+                    education="higher",
+                    institution="Не указано",
+                    specialty="Не указано",
+                    graduation_year=2020,
+                    marital_status="single",
+                    passport_series="0000",
+                    passport_number="000000",
+                    passport_issued_by="Не указано",
+                    passport_issue_date="2020-01-01",
+                    passport_department_code="000-000",
+                    work_experience_total=candidate.experience_years or 0,
+                    work_experience_specialty=candidate.experience_years or 0,
+                    candidate=candidate
+                )
+                created_count += 1
+                print(f"📝 Создана форма для: {candidate.first_name} {candidate.last_name}")
+            except Exception as e:
+                print(f"❌ Ошибка создания формы для {candidate.first_name}: {e}")
+
+    # Статистика
+    total_linked = Candidate.objects.filter(personnel_form__isnull=False).count()
+    total_candidates = Candidate.objects.count()
+
+    print(f"=== ИТОГИ ===")
+    print(f"Связано существующих: {linked_count}")
+    print(f"Создано новых форм: {created_count}")
+    print(f"Всего кандидатов с формами: {total_linked}/{total_candidates}")
+
+    messages.success(request,
+                     f'Связано {linked_count} кандидатов, создано {created_count} новых форм. Всего с формами: {total_linked}/{total_candidates}')
+    return redirect('personnel_candidate_list')
+
+

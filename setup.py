@@ -362,82 +362,84 @@ def setup_project():
     # Создаем тестовые анкеты сотрудников
     personnel_forms_data = [
         {
-            'last_name': 'Смирнов',
-            'first_name': 'Андрей',
-            'patronymic': 'Викторович',
-            'birth_date': '1990-05-15',
+            'last_name': 'Петров',
+            'first_name': 'Иван',
+            'patronymic': 'Сергеевич',
+            'birth_date': '1995-03-20',
             'birth_place': 'г. Москва',
             'citizenship': 'Российская Федерация',
             'address': 'г. Москва, ул. Ленина, д. 10, кв. 25',
-            'phone': '+79997777777',
-            'email': 'andrey.smirnov@company.ru',
+            'phone': '+79991111111',
+            'email': 'ivan.petrov@example.com',  # Тот же email что у кандидата!
             'education': 'higher',
             'institution': 'МГТУ им. Баумана',
             'specialty': 'Информационные системы и технологии',
-            'graduation_year': 2012,
-            'marital_status': 'married',
+            'graduation_year': 2017,
+            'marital_status': 'single',
             'passport_series': '4510',
             'passport_number': '123456',
             'passport_issued_by': 'ОУФМС России по г. Москве',
-            'passport_issue_date': '2010-05-20',
+            'passport_issue_date': '2015-05-20',
             'passport_department_code': '770-001',
             'inn': '123456789012',
             'snils': '123-456-789-00',
             'military_duty': True,
             'military_rank': 'лейтенант',
             'military_specialty': 'программист',
-            'work_experience_total': 10,
-            'work_experience_specialty': 8,
-            'is_approved': True
+            'work_experience_total': 3,
+            'work_experience_specialty': 3,
+            'is_approved': False,
+            'candidate_status': 'new'
         },
         {
-            'last_name': 'Орлова',
-            'first_name': 'Татьяна',
-            'patronymic': 'Михайловна',
-            'birth_date': '1988-08-22',
+            'last_name': 'Сидорова',
+            'first_name': 'Мария',
+            'patronymic': 'Александровна',
+            'birth_date': '1998-08-22',
             'birth_place': 'г. Санкт-Петербург',
             'citizenship': 'Российская Федерация',
             'address': 'г. Санкт-Петербург, Невский пр-т, д. 50, кв. 12',
-            'phone': '+79998888888',
-            'email': 'tatiana.orlova@company.ru',
-            'education': 'master',
+            'phone': '+79992222222',
+            'email': 'maria.sidorova@example.com',  # Тот же email что у кандидата!
+            'education': 'bachelor',
             'institution': 'СПбГУ',
             'specialty': 'Прикладная математика и информатика',
-            'graduation_year': 2010,
+            'graduation_year': 2020,
             'marital_status': 'single',
             'passport_series': '4012',
             'passport_number': '654321',
             'passport_issued_by': 'ОУФМС России по г. Санкт-Петербургу',
-            'passport_issue_date': '2008-08-15',
+            'passport_issue_date': '2018-08-15',
             'passport_department_code': '780-002',
             'inn': '987654321098',
             'snils': '987-654-321-00',
             'military_duty': False,
             'military_rank': '',
             'military_specialty': '',
-            'work_experience_total': 12,
-            'work_experience_specialty': 10,
-            'is_approved': True
+            'work_experience_total': 1,
+            'work_experience_specialty': 1,
+            'is_approved': False,
+            'candidate_status': 'interviewed'
         },
         {
-            'last_name': 'Волков',
-            'first_name': 'Сергей',
-            'patronymic': 'Анатольевич',
-            'birth_date': '1995-12-03',
+            'last_name': 'Козлов',
+            'first_name': 'Алексей',
+            'patronymic': 'Дмитриевич',
+            'birth_date': '1990-12-03',
             'birth_place': 'г. Екатеринбург',
             'citizenship': 'Российская Федерация',
             'address': 'г. Екатеринбург, ул. Мира, д. 15, кв. 8',
-            'phone': '+79999999999',
-            'email': 'sergey.volkov@company.ru',
-            'education': 'bachelor',
+            'phone': '+79993333333',
+            'email': 'alexey.kozlov@example.com',  # Тот же email что у кандидата!
+            'education': 'master',
             'institution': 'УрФУ',
             'specialty': 'Программная инженерия',
-            'graduation_year': 2017,
+            'graduation_year': 2013,
             'marital_status': 'married',
             'passport_series': '5001',
             'passport_number': '111222',
             'passport_issued_by': 'ОУФМС России по Свердловской области',
-            'passport_issue_date': '2013-12-10',
+            'passport_issue_date': '2011-12-10',
             'passport_department_code': '660-003',
             'inn': '111222333444',
             'snils': '111-222-333-44',
@@ -445,8 +447,9 @@ def setup_project():
             'military_rank': 'рядовой',
             'military_specialty': 'связист',
             'work_experience_total': 5,
-            'work_experience_specialty': 4,
-            'is_approved': False
+            'work_experience_specialty': 5,
+            'is_approved': True,
+            'candidate_status': 'accepted'
         }
     ]
 
@@ -457,11 +460,46 @@ def setup_project():
         )
 
         if created:
+            # Находим соответствующего кандидата и связываем
+            try:
+                candidate = Candidate.objects.get(email=form_data['email'])
+                form.candidate = candidate
+                form.save()
+                print(
+                    f" Создана и СВЯЗАНА анкета: {form_data['last_name']} {form_data['first_name']} → {candidate.first_name} {candidate.last_name}")
+            except Candidate.DoesNotExist:
+                print(f" Создана анкета: {form_data['last_name']} {form_data['first_name']} (кандидат не найден)")
+
             # Добавляем навыки к анкете
             skills_to_add = random.sample(skills_objects, min(5, len(skills_objects)))
             form.skills.set(skills_to_add)
 
             print(f" Создана анкета сотрудника: {form_data['last_name']} {form_data['first_name']}")
+
+            # Проверка и автоматическое исправление связей
+            def verify_links():
+                from candidates.models import Candidate, PersonnelForm
+
+                print("\n=== ПРОВЕРКА СВЯЗЕЙ ===")
+
+                # Проверяем формы без связей
+                forms_without_links = PersonnelForm.objects.filter(candidate__isnull=True)
+                if forms_without_links.exists():
+                    print(f"⚠️  Найдено {forms_without_links.count()} форм без связей")
+                    print("Автоматическое исправление...")
+
+                    for form in forms_without_links:
+                        try:
+                            candidate = Candidate.objects.get(email=form.email)
+                            form.candidate = candidate
+                            form.save()
+                            print(f"✅ Связано: {form.first_name} {form.last_name} → {candidate.email}")
+                        except Candidate.DoesNotExist:
+                            print(f"❌ Кандидат не найден для: {form.email}")
+                else:
+                    print("✅ Все формы связаны с кандидатами!")
+
+            verify_links()
 
     print("\n Настройка завершена!")
     print("\n Доступные логины:")

@@ -95,7 +95,6 @@ class CandidateCreateForm(forms.ModelForm):
             raise forms.ValidationError("Опыт работы не может превышать 50 лет")
         return experience_years
 
-
 class SimpleCandidateForm(forms.ModelForm):
     """Упрощенная форма для создания кандидатов рекрутерами"""
 
@@ -104,7 +103,7 @@ class SimpleCandidateForm(forms.ModelForm):
         fields = [
             'last_name', 'first_name', 'patronymic',
             'email', 'phone', 'education', 'specialty',
-            'work_experience_total', 'skills'  # ДОБАВИЛИ skills
+            'work_experience_total', 'skills'
         ]
         widgets = {
             'last_name': forms.TextInput(attrs={
@@ -142,9 +141,9 @@ class SimpleCandidateForm(forms.ModelForm):
                 'min': '0',
                 'max': '50'
             }),
-            'skills': forms.SelectMultiple(attrs={  # ИЗМЕНИЛИ на SelectMultiple
+            'skills': forms.SelectMultiple(attrs={
                 'class': 'form-select',
-                'size': '6'  # показываем 6 вариантов сразу
+                'size': '6'
             })
         }
         labels = {
@@ -154,10 +153,9 @@ class SimpleCandidateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Убираем обязательность некоторых полей для рекрутеров
         self.fields['specialty'].required = False
         self.fields['education'].required = False
-        self.fields['skills'].required = False  # Навыки не обязательны
+        self.fields['skills'].required = False
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -165,9 +163,8 @@ class SimpleCandidateForm(forms.ModelForm):
             raise forms.ValidationError("Кандидат с таким email уже существует")
         return email
 
-
 class RecruiterCandidateForm(forms.ModelForm):
-    """Форма для создания кандидатов рекрутерами - УПРОЩЕННАЯ"""
+    """Форма для создания кандидатов рекрутерами с автоматическим созданием формы персонала"""
 
     class Meta:
         model = Candidate
@@ -187,7 +184,7 @@ class RecruiterCandidateForm(forms.ModelForm):
             'education_level', 'education_institution', 'education_specialty', 'graduation_year',
 
             # Источник кандидата
-            'source', 'assigned_recruiter', 'source_details', 'resume',  # ИСПРАВИЛИ source_details
+            'source', 'assigned_recruiter', 'source_details', 'resume',
 
             # Мотивация и ожидания
             'desired_salary', 'notice_period',
@@ -372,3 +369,39 @@ class RecruiterCandidateForm(forms.ModelForm):
         if experience_years and experience_years > 70:
             raise forms.ValidationError("Опыт работы не может превышать 70 лет")
         return experience_years
+
+    def save(self, commit=True):
+        candidate = super().save(commit=commit)
+
+        # Автоматически создаем форму персонала
+        if commit:
+            try:
+                PersonnelForm.objects.create(
+                    first_name=candidate.first_name,
+                    last_name=candidate.last_name,
+                    patronymic=candidate.patronymic or "",
+                    email=candidate.email,
+                    phone=candidate.phone or "+79990000000",
+                    birth_date="2000-01-01",
+                    birth_place="Не указано",
+                    address="Не указано",
+                    education="higher",
+                    institution="Не указано",
+                    specialty=candidate.specialization or "Не указано",
+                    graduation_year=2020,
+                    marital_status="single",
+                    passport_series="0000",
+                    passport_number="000000",
+                    passport_issued_by="Не указано",
+                    passport_issue_date="2020-01-01",
+                    passport_department_code="000-000",
+                    work_experience_total=candidate.experience_years or 0,
+                    work_experience_specialty=candidate.experience_years or 0,
+                    candidate=candidate,
+                    candidate_status="new"
+                )
+                print(f"Автоматически создана форма для {candidate.first_name} {candidate.last_name}")
+            except Exception as e:
+                print(f"Ошибка создания формы: {e}")
+
+        return candidate

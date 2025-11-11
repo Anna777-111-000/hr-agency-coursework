@@ -203,6 +203,14 @@ class PersonnelForm(models.Model):
         verbose_name="Статус кандидата"
     )
 
+    candidate = models.OneToOneField(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name='personnel_form',
+        null=True,
+        blank=True,
+        verbose_name="Кандидат"
+    )
 
     skills = models.ManyToManyField('vacancies.Skill', blank=True, verbose_name="Навыки")
     # Основная информация
