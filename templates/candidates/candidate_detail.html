@@ -282,6 +282,13 @@
                             📋 Прикрепить к вакансии
                         </button>
 
+                        <!-- Заполнить анкету -->
+                        {% if user.role in 'manager,admin' and candidate.personnel_form %}
+                        <a href="{% url 'fill_personnel_form' candidate.id %}" class="btn btn-info">
+                            📝 Заполнить анкету
+                        </a>
+                        {% endif %}
+
                         <!-- Редактировать кандидата -->
                         <a href="{% url 'candidate_edit' candidate.id %}" class="btn btn-outline-warning">
                             ✏️ Редактировать

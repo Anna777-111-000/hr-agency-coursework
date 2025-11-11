@@ -11,6 +11,7 @@ from django.conf import settings
 import os
 from django.core.paginator import EmptyPage, PageNotAnInteger
 from vacancies.models import Vacancy
+from .forms import PersonnelFormForm, CandidateCreateForm, RecruiterCandidateForm, PersonnelFormFillForm
 
 def role_required(allowed_roles):
     """Декоратор для проверки ролей пользователя"""
@@ -967,3 +968,30 @@ def link_candidates_to_forms(request):
     return redirect('personnel_candidate_list')
 
 
+@login_required
+@role_required(['manager', 'admin'])
+def fill_personnel_form(request, candidate_id):
+    """Заполнение деталей анкеты сотрудника"""
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+
+    # Проверяем, есть ли форма у кандидата
+    if not hasattr(candidate, 'personnel_form') or not candidate.personnel_form:
+        messages.error(request, 'У кандидата нет анкеты для заполнения')
+        return redirect('candidate_detail', candidate_id=candidate_id)
+
+    personnel_form = candidate.personnel_form
+
+    if request.method == 'POST':
+        form = PersonnelFormFillForm(request.POST, instance=personnel_form)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Анкета {candidate.first_name} {candidate.last_name} успешно заполнена!')
+            return redirect('candidate_detail', candidate_id=candidate_id)
+    else:
+        form = PersonnelFormFillForm(instance=personnel_form)
+
+    return render(request, 'candidates/fill_personnel_form.html', {
+        'form': form,
+        'candidate': candidate,
+        'personnel_form': personnel_form
+    })
