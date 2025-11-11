@@ -83,7 +83,7 @@ def vacancy_list(request):
 def vacancy_create(request):
     """Создание новой вакансии"""
     if request.method == 'POST':
-        form = VacancyForm(request.POST, request=request)
+        form = VacancyForm(request.POST)
         if form.is_valid():
             vacancy = form.save()
             messages.success(request, f'Вакансия "{vacancy.title}" успешно создана!')
@@ -93,7 +93,7 @@ def vacancy_create(request):
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
-        form = VacancyForm(request=request)
+        form = VacancyForm()
 
     return render(request, 'vacancies/vacancy_form.html', {
         'form': form,
