@@ -282,32 +282,33 @@ def personnel_form(request):
 
 @role_required(['manager', 'admin'])
 def personnel_form_list(request):
-    """Список заполненных форм с кандидатами"""
-    forms_list = PersonnelForm.objects.all().order_by('-created_at')
+    """Список ВСЕХ кандидатов с анкетами для менеджера"""
 
-    print(f"DEBUG: Всего форм: {forms_list.count()}")
+    # Получаем ВСЕ формы с кандидатами
+    forms_list = PersonnelForm.objects.all().select_related('candidate').order_by('-created_at')
 
-    # Выведем отладочную информацию
+    print(f"DEBUG: Всего анкет: {forms_list.count()}")
+
+    # Выводим отладочную информацию
     for form in forms_list:
         candidate_info = f"{form.candidate.first_name} {form.candidate.last_name}" if form.candidate else "НЕТ КАНДИДАТА"
         print(f"DEBUG: Форма {form.id}: {form.first_name} {form.last_name} -> Кандидат: {candidate_info}")
 
-    # Поиск по имени, фамилии или email
+    # Поиск
     search_query = request.GET.get('search', '')
     if search_query:
         forms_list = forms_list.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query) |
-            Q(email__icontains=search_query)
+            Q(email__icontains=search_query) |
+            Q(candidate__first_name__icontains=search_query) |
+            Q(candidate__last_name__icontains=search_query)
         )
 
-    # Фильтрация по статусу одобрения
-    approval_filter = request.GET.get('approval', '')
-    if approval_filter:
-        if approval_filter == 'approved':
-            forms_list = forms_list.filter(is_approved=True)
-        elif approval_filter == 'pending':
-            forms_list = forms_list.filter(is_approved=False)
+    # Фильтрация по статусу
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        forms_list = forms_list.filter(candidate_status=status_filter)
 
     # Пагинация
     paginator = Paginator(forms_list, 10)
@@ -316,16 +317,18 @@ def personnel_form_list(request):
 
     # Статистика
     total_forms = forms_list.count()
-    approved_forms = forms_list.filter(is_approved=True).count()
-    pending_forms = forms_list.filter(is_approved=False).count()
+    approved_forms = forms_list.filter(candidate_status='accepted').count()
+    pending_forms = forms_list.filter(candidate_status='new').count()
+    rejected_forms = forms_list.filter(candidate_status='rejected').count()
 
     context = {
         'forms': forms,
         'total_forms': total_forms,
         'approved_forms': approved_forms,
         'pending_forms': pending_forms,
+        'rejected_forms': rejected_forms,
         'search_query': search_query,
-        'approval_filter': approval_filter,
+        'status_filter': status_filter,
     }
 
     return render(request, 'candidates/personnel_form_list.html', context)
@@ -808,40 +811,25 @@ def personnel_form_reject(request, form_id):
 @login_required
 @role_required(['manager', 'admin'])
 def personnel_candidate_list(request):
-    """Чистая рабочая версия - список кандидатов для менеджера"""
+    """Показываем ВСЕХ кандидатов для менеджера"""
 
-    # Основной запрос - кандидаты с формами
-    candidates_with_forms = Candidate.objects.filter(
-        personnel_form__isnull=False
-    ).select_related('personnel_form').order_by('-created_at')
+    # ИСПРАВЛЕНИЕ: personnel_form вместо personnelform
+    candidates_list = Candidate.objects.all().select_related('personnel_form').order_by('-created_at')
+
+    print(f"DEBUG: Всего кандидатов для отображения: {candidates_list.count()}")
 
     # Фильтрация по статусу
     status_filter = request.GET.get('status', '')
     if status_filter:
-        candidates_with_forms = candidates_with_forms.filter(
+        candidates_list = candidates_list.filter(
             personnel_form__candidate_status=status_filter
         )
 
-    # Поиск
-    search_query = request.GET.get('search', '')
-    if search_query:
-        candidates_with_forms = candidates_with_forms.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(email__icontains=search_query)
-        )
-
-    # Пагинация
-    paginator = Paginator(candidates_with_forms, 15)
-    page_number = request.GET.get('page')
-    candidates = paginator.get_page(page_number)
-
     # Статистика
-    total_candidates = candidates_with_forms.count()
-    approved_count = candidates_with_forms.filter(personnel_form__candidate_status='accepted').count()
-    pending_count = candidates_with_forms.filter(personnel_form__candidate_status='new').count()
-    rejected_count = candidates_with_forms.filter(personnel_form__candidate_status='rejected').count()
-
+    total_candidates = candidates_list.count()
+    approved_count = candidates_list.filter(personnel_form__candidate_status='accepted').count()
+    pending_count = candidates_list.filter(personnel_form__candidate_status='new').count()
+    rejected_count = candidates_list.filter(personnel_form__candidate_status='rejected').count()
     context = {
         'candidates': candidates,
         'total_candidates': total_candidates,
@@ -853,7 +841,6 @@ def personnel_candidate_list(request):
     }
 
     return render(request, 'candidates/personnel_candidate_list.html', context)
-
 
 @login_required
 @role_required(['manager', 'admin'])
@@ -871,12 +858,12 @@ def approve_candidate(request, candidate_id):
 
     return redirect('personnel_candidate_list')
 
-
 @login_required
 @role_required(['manager', 'admin'])
 def reject_candidate(request, candidate_id):
     """Отклонение кандидата менеджером"""
     candidate = get_object_or_404(Candidate, id=candidate_id)
+
 
     if hasattr(candidate, 'personnel_form') and candidate.personnel_form:
         candidate.personnel_form.candidate_status = 'rejected'

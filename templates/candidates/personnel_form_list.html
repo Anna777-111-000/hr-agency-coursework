@@ -8,11 +8,12 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"> Анкеты сотрудников</h4>
+                    <h4 class="mb-0">📋 Анкеты сотрудников</h4>
                     <div class="statistics">
                         <span class="badge bg-primary">Всего: {{ total_forms }}</span>
                         <span class="badge bg-success">Одобрены: {{ approved_forms }}</span>
                         <span class="badge bg-warning">Ожидают: {{ pending_forms }}</span>
+                        <span class="badge bg-danger">Отклонены: {{ rejected_forms }}</span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -34,6 +35,9 @@
                                 <tr>
                                     <td>
                                         <strong>{{ form.last_name }} {{ form.first_name }} {{ form.patronymic }}</strong>
+                                        {% if form.candidate %}
+                                        <br><small class="text-muted">Кандидат: {{ form.candidate.first_name }} {{ form.candidate.last_name }}</small>
+                                        {% endif %}
                                     </td>
                                     <td>{{ form.get_education_display }}</td>
                                     <td>
@@ -48,33 +52,50 @@
                                     </td>
                                     <td>
                                         {% if form.is_approved %}
-                                            <span class="badge bg-success"> Одобрено</span>
+                                            <span class="badge bg-success">✅ Одобрено</span>
                                         {% else %}
-                                            <span class="badge bg-warning"> На проверке</span>
+                                            <span class="badge bg-warning">⏳ На проверке</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ form.created_at|date:"d.m.Y" }}</td>
-                                        <td>
-                                            <a href="{% url 'personnel_form_detail' form.id %}" class="btn btn-sm btn-outline-primary">👁️ Просмотр</a>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            {% if form.candidate %}
+                                            <a href="{% url 'fill_personnel_form' form.candidate.id %}"
+                                               class="btn btn-outline-primary" title="Заполнить анкету">
+                                                📝
+                                            </a>
+                                            <a href="{% url 'candidate_detail' form.candidate.id %}"
+                                               class="btn btn-outline-info" title="Профиль кандидата">
+                                                👁️
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'personnel_form_detail' form.id %}"
+                                               class="btn btn-outline-secondary" title="Просмотр анкеты">
+                                                📄
+                                            </a>
                                             {% if user.role == 'manager' or user.role == 'admin' %}
                                                 {% if not form.is_approved %}
                                                 <form method="post" action="{% url 'personnel_form_approve' form.id %}" class="d-inline">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="btn btn-sm btn-outline-success"
-                                                            onclick="return confirm('Одобрить анкету {{ form.last_name }} {{ form.first_name }}?')">
-                                                        Одобрить
+                                                    <button type="submit" class="btn btn-outline-success"
+                                                            onclick="return confirm('Одобрить анкету {{ form.last_name }} {{ form.first_name }}?')"
+                                                            title="Одобрить">
+                                                        ✅
                                                     </button>
                                                 </form>
                                                 {% endif %}
                                                 <form method="post" action="{% url 'personnel_form_reject' form.id %}" class="d-inline">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                            onclick="return confirm('Отклонить анкету {{ form.last_name }} {{ form.first_name }}?')">
-                                                         Отклонить
+                                                    <button type="submit" class="btn btn-outline-danger"
+                                                            onclick="return confirm('Отклонить анкету {{ form.last_name }} {{ form.first_name }}?')"
+                                                            title="Отклонить">
+                                                        ❌
                                                     </button>
                                                 </form>
                                             {% endif %}
-                                        </td>
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -105,7 +126,12 @@
                     {% endif %}
 
                     {% else %}
-                    <p class="text-muted text-center">Нет анкет сотрудников</p>
+                    <div class="text-center py-5">
+                        <p class="text-muted">Нет анкет сотрудников</p>
+                        <a href="{% url 'link_candidates' %}" class="btn btn-primary">
+                            🔗 Связать кандидатов с анкетами
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>

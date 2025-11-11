@@ -28,10 +28,9 @@ urlpatterns = [
     # Менеджер
     path('manager/dashboard/', views.manager_dashboard, name='manager_dashboard'),
     path('link-candidates/', views.link_candidates_to_forms, name='link_candidates'),
-    path('personnel/candidates/', views.personnel_candidate_list, name='personnel_candidate_list'),
-    path('personnel/candidates/<int:candidate_id>/approve/', views.approve_candidate, name='approve_candidate'),
-    path('personnel/candidates/<int:candidate_id>/reject/', views.reject_candidate, name='reject_candidate'),
     path('personnel/forms/<int:candidate_id>/fill/', views.fill_personnel_form, name='fill_personnel_form'),
+    path('personnel/candidates/', views.personnel_candidate_list, name='personnel_candidate_list'),
+
     # Аналитика
     path('analytics/', views.recruitment_analytics, name='recruitment_analytics'),
 ]
