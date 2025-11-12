@@ -1,0 +1,156 @@
+м{% extends 'base.html' %}
+
+{% block title %}Заполнение анкеты - {{ candidate.first_name }} {{ candidate.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>📝 Заполнение анкеты сотрудника</h4>
+                    <p class="mb-0">Кандидат: <strong>{{ candidate.first_name }} {{ candidate.last_name }}</strong></p>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>👤 Основная информация</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Дата рождения</label>
+                                    {{ form.birth_date }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Место рождения</label>
+                                    {{ form.birth_place }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Гражданство</label>
+                                    {{ form.citizenship }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Семейное положение</label>
+                                    {{ form.marital_status }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h5>📞 Контактная информация</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Адрес проживания</label>
+                                    {{ form.address }}
+                                </div>
+
+                                <h5>🎓 Образование</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Уровень образования</label>
+                                    {{ form.education }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Учебное заведение</label>
+                                    {{ form.institution }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Специальность</label>
+                                    {{ form.specialty }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Год окончания</label>
+                                    {{ form.graduation_year }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>📋 Паспортные данные</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Серия паспорта</label>
+                                            {{ form.passport_series }}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Номер паспорта</label>
+                                            {{ form.passport_number }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Кем выдан</label>
+                                    {{ form.passport_issued_by }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Дата выдачи</label>
+                                    {{ form.passport_issue_date }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Код подразделения</label>
+                                    {{ form.passport_department_code }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h5>💼 Трудовая деятельность</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Общий стаж работы (лет)</label>
+                                    {{ form.work_experience_total }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Стаж по специальности (лет)</label>
+                                    {{ form.work_experience_specialty }}
+                                </div>
+
+                                <h5>🎖️ Воинский учет</h5>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.military_duty }}
+                                        <label class="form-check-label">Военнообязанный</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Воинское звание</label>
+                                    {{ form.military_rank }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Военно-учетная специальность</label>
+                                    {{ form.military_specialty }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <h5>📊 Дополнительная информация</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">ИНН</label>
+                                    {{ form.inn }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">СНИЛС</label>
+                                    {{ form.snils }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Дополнительная информация</label>
+                                    {{ form.additional_info }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success">💾 Сохранить анкету</button>
+                            <a href="{% url 'candidate_detail' candidate.id %}" class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

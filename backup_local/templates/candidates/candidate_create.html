@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Кнопка назад -->
+    <div class="mb-3">
+        <a href="{% url 'candidate_list' %}" class="btn btn-outline-secondary">
+            ← Назад к списку кандидатов
+        </a>
+    </div>
+
+    <!-- Сообщения -->
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Основная информация -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">👤 Основная информация</h5>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.patronymic|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.phone|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.age|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.experience_years|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.position_level|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Профессиональная информация -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">💼 Профессиональная информация</h5>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.specialization|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.employment_status|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.work_format|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- История работы -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">🏢 История работы</h5>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.last_workplace|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.last_position|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.work_period|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.responsibilities|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Образование -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">🎓 Образование</h5>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.education_level|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.education_institution|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.education_specialty|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.graduation_year|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Навыки -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">🛠️ Навыки</h5>
+                            </div>
+                            <div class="col-12">
+                                {{ form.skills|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Информация для рекрутеров -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">🔍 Информация для рекрутеров</h5>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.source|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.source_details|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.assigned_recruiter|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.desired_salary|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.notice_period|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Примечания и файлы -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">📝 Дополнительная информация</h5>
+                            </div>
+                            <div class="col-12">
+                                {{ form.recruiter_notes|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.next_actions|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.candidate_features|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.resume|as_crispy_field }}
+                                <div class="form-text">
+                                    Поддерживаемые форматы: PDF, DOC, DOCX. Максимальный размер: 10MB.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Прикрепить к вакансии -->
+                        {% if open_vacancies %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">📋 Прикрепить к вакансии</h5>
+                                <div class="mb-3">
+                                    <label for="vacancy" class="form-label">Выберите вакансию:</label>
+                                    <select class="form-select" id="vacancy" name="vacancy_id">
+                                        <option value="">-- Не прикреплять --</option>
+                                        {% for vacancy in open_vacancies %}
+                                        <option value="{{ vacancy.id }}">{{ vacancy.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        Вы можете прикрепить кандидата к вакансии сразу при создании
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'candidate_list' %}" class="btn btn-secondary me-md-2">Отмена</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if candidate %}Обновить кандидата{% else %}Создать кандидата{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+.border-bottom {
+    border-color: #dee2e6 !important;
+}
+</style>
+{% endblock %}

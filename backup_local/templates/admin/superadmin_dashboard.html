@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель суперадминистратора{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>🛡️ Панель суперадминистратора</h1>
+            <p class="lead">Управление пользователями системы</p>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Всего пользователей</h5>
+                    <h2 class="card-text">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Менеджеров</h5>
+                    <h2 class="card-text">{{ managers_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Рекрутеров</h5>
+                    <h2 class="card-text">{{ recruiters_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Быстрые действия</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'admin:user_management' %}" class="btn btn-primary me-2">
+                        👥 Управление пользователями
+                    </a>
+                    <button class="btn btn-outline-secondary me-2" disabled>
+                        📊 Статистика системы (скоро)
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled>
+                        ⚙️ Настройки (скоро)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

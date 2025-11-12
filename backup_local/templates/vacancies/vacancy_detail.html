@@ -1,0 +1,411 @@
+<!-- templates/vacancies/vacancy_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ vacancy.title }} - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Кнопка назад -->
+    <div class="mb-3">
+        <a href="{% url 'vacancy_list' %}" class="btn btn-outline-secondary">
+            ← Назад к списку вакансий
+        </a>
+    </div>
+
+    <!-- Сообщения -->
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Основная информация -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ vacancy.title }}</h4>
+                    <div>
+                        <span class="badge {% if vacancy.status == 'open' %}bg-success{% elif vacancy.status == 'closed' %}bg-danger{% else %}bg-secondary{% endif %} me-1">
+                            {{ vacancy.get_status_display }}
+                        </span>
+                        <span class="badge bg-info">{{ vacancy.get_work_format_display }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5>Описание вакансии</h5>
+                    <div class="mb-4 p-3 bg-light rounded">
+                        {{ vacancy.description|linebreaks }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Требуемый опыт:</strong> {{ vacancy.required_experience }} лет</p>
+                            <p><strong>Тип занятости:</strong> {{ vacancy.get_employment_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if vacancy.salary %}
+                            <p><strong>Зарплата:</strong> <span class="text-success fw-bold">{{ vacancy.salary }} руб.</span></p>
+                            {% endif %}
+                            {% if vacancy.location %}
+                            <p><strong>Местоположение:</strong> {{ vacancy.location }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Требуемые навыки -->
+            {% if vacancy.required_skills.all %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">🛠️ Требуемые навыки</h5>
+                </div>
+                <div class="card-body">
+                    {% for skill in vacancy.required_skills.all %}
+                    <span class="badge bg-primary mb-2 me-1 fs-6">{{ skill.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Информация о вакансии -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">📋 Информация о вакансии</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Создатель:</strong>
+                        <div>{{ vacancy.created_by.username }}</div>
+                    </div>
+
+                    {% if vacancy.assigned_recruiter %}
+                    <div class="mb-3">
+                        <strong>Ответственный рекрутер:</strong>
+                        <div>{{ vacancy.assigned_recruiter.username }}</div>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <strong>Ответственный рекрутер:</strong>
+                        <div class="text-muted">Не назначен</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <strong>Дата создания:</strong>
+                        <div>{{ vacancy.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Последнее обновление:</strong>
+                        <div>{{ vacancy.updated_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика откликов и список кандидатов -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">👥 Кандидаты на вакансию</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Всего откликов:</strong>
+                        <span class="badge bg-primary float-end">{{ applications_count }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Одобрено:</strong>
+                        <span class="badge bg-success float-end">{{ approved_applications }}</span>
+                    </div>
+
+                    {% if applications_count > 0 %}
+                    <div class="progress mt-2" style="height: 10px;">
+                        <div class="progress-bar bg-success"
+                             style="width: {% widthratio approved_applications applications_count 100 %}%">
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {% widthratio approved_applications applications_count 100 %}% одобрено
+                    </small>
+
+                    <!-- Список кандидатов -->
+                    <div class="mt-4">
+                        <strong>Список кандидатов:</strong>
+                        <div class="mt-2">
+                            {% for application in applications %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                <div>
+                                    <a href="{% url 'candidate_detail' application.candidate.id %}" class="text-decoration-none">
+                                        <strong>{{ application.candidate.last_name }} {{ application.candidate.first_name }}</strong>
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ application.candidate.specialization|default:"Специализация не указана" }}
+                                        {% if application.candidate.experience_years %}
+                                        • Опыт: {{ application.candidate.experience_years }} лет
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div>
+                                    <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <p>Пока нет кандидатов на эту вакансию</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Действия для менеджера/админа -->
+            {% if user.role == 'manager' or user.role == 'admin' %}
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">⚡ Действия</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'vacancy_edit' vacancy.id %}" class="btn btn-outline-warning">
+                            ✏️ Редактировать
+                        </a>
+
+                        {% if vacancy.status == 'open' %}
+                        <a href="{% url 'vacancy_change_status' vacancy.id 'closed' %}" class="btn btn-outline-danger"
+                           onclick="return confirm('Вы уверены, что хотите закрыть вакансию «{{ vacancy.title }}»?')">
+                            🔒 Закрыть вакансию
+                        </a>
+                        {% elif vacancy.status == 'closed' %}
+                        <a href="{% url 'vacancy_change_status' vacancy.id 'open' %}" class="btn btn-outline-success"
+                           onclick="return confirm('Вы уверены, что хотите открыть вакансию «{{ vacancy.title }}»?')">
+                            🔓 Открыть вакансию
+                        </a>
+                        {% elif vacancy.status == 'draft' %}
+                        <a href="{% url 'vacancy_change_status' vacancy.id 'open' %}" class="btn btn-outline-success"
+                           onclick="return confirm('Вы уверены, что хотите опубликовать вакансию «{{ vacancy.title }}»?')">
+                            📢 Опубликовать
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'vacancy_delete' vacancy.id %}" class="btn btn-outline-danger"
+                           onclick="return confirm('Вы уверены, что хотите удалить вакансию «{{ vacancy.title }}»? Это действие нельзя отменить.')">
+                            🗑️ Удалить
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Действия для рекрутера -->
+            {% if user.role == 'recruiter' and vacancy.assigned_recruiter == user %}
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">👥 Действия рекрутера</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'candidate_list' %}" class="btn btn-outline-primary">
+                            ➕ Найти кандидата
+                        </a>
+                        <a href="{% url 'candidate_list' %}" class="btn btn-outline-info">
+                            📅 Список кандидатов
+                        </a>
+                        {% if applications_count > 0 %}
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#candidateStatisticsModal">
+                            📊 Статистика по кандидатам
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Информация для рекрутеров -->
+            {% if user.role == 'recruiter' %}
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">ℹ️ Информация для рекрутера</h6>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        {% if vacancy.assigned_recruiter %}
+                            {% if vacancy.assigned_recruiter == user %}
+                                <strong class="text-success">✓ Вы назначены ответственным</strong> за эту вакансию
+                                <br>
+                                <span class="text-muted">Вы можете прикреплять кандидатов и управлять их статусами</span>
+                            {% else %}
+                                Ответственный: <strong>{{ vacancy.assigned_recruiter.username }}</strong>
+                                <br>
+                                <span class="text-muted">Вы можете просматривать кандидатов, но не можете их редактировать</span>
+                            {% endif %}
+                        {% else %}
+                            <strong class="text-warning">⚠️ Рекрутер не назначен</strong>
+                            <br>
+                            <span class="text-muted">Обратитесь к менеджеру для назначения ответственного</span>
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+<!-- Модальное окно статистики -->
+<div class="modal fade" id="candidateStatisticsModal" tabindex="-1" aria-labelledby="candidateStatisticsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="candidateStatisticsModalLabel">📊 Статистика по кандидатам</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h3>{{ applications_count }}</h3>
+                                <p class="mb-0">Всего кандидатов</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h3>{{ approved_applications }}</h3>
+                                <p class="mb-0">Одобрено</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h3>
+                                    {% if applications_count > 0 %}
+                                    {% widthratio approved_applications applications_count 100 %}%
+                                    {% else %}
+                                    0%
+                                    {% endif %}
+                                </h3>
+                                <p class="mb-0">Процент одобрения</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <h6>Распределение по статусам:</h6>
+                    <div class="progress" style="height: 30px;">
+                        {% if applications_count > 0 %}
+                        <div class="progress-bar bg-success" style="width: {% widthratio approved_applications applications_count 100 %}%">
+                            Одобрено ({{ approved_applications }})
+                        </div>
+                        <div class="progress-bar bg-warning" style="width: {% widthratio pending_applications applications_count 100 %}%">
+                            На рассмотрении ({{ pending_applications }})
+                        </div>
+                        <div class="progress-bar bg-danger" style="width: {% widthratio rejected_applications applications_count 100 %}%">
+                            Отклонено ({{ rejected_applications }})
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+.progress {
+    border-radius: 5px;
+}
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.btn:hover {
+    transform: translateY(-1px);
+}
+.alert {
+    border-radius: 0.5rem;
+}
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматически скрываем сообщения через 5 секунд
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+});
+
+// Функция для изменения статуса заявки (заглушка)
+function changeApplicationStatus(applicationId, newStatus) {
+    if (confirm('Вы уверены, что хотите изменить статус заявки?')) {
+        // Здесь будет AJAX запрос для изменения статуса
+        alert('Функция изменения статуса находится в разработке');
+    }
+}
+
+// Обновляем статистику для модального окна
+function updateStatistics() {
+    const pendingApplications = {{ applications_count }} - {{ approved_applications }};
+    const rejectedApplications = 0; // Пока не реализовано
+
+    document.querySelector('.progress-bar.bg-warning').style.width =
+        (pendingApplications / {{ applications_count }} * 100) + '%';
+    document.querySelector('.progress-bar.bg-warning').textContent =
+        'На рассмотрении (' + pendingApplications + ')';
+
+    document.querySelector('.progress-bar.bg-danger').style.width =
+        (rejectedApplications / {{ applications_count }} * 100) + '%';
+    document.querySelector('.progress-bar.bg-danger').textContent =
+        'Отклонено (' + rejectedApplications + ')';
+}
+
+// Инициализация при загрузке страницы
+updateStatistics();
+</script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ candidate.last_name }} {{ candidate.first_name }} - Администратор{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'candidate_list' %}">Кандидаты</a></li>
+            <li class="breadcrumb-item active">{{ candidate.last_name }} {{ candidate.first_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4>{{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}</h4>
+                    <small>Уровень доступа: Полный (Администратор)</small>
+                </div>
+                <div class="card-body">
+
+                    <!-- Контактная и личная информация -->
+                    <h5>👤 Основная информация</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Email:</strong><br>{{ candidate.email }}</p>
+                            <p><strong>Телефон:</strong><br>{{ candidate.phone }}</p>
+                            <p><strong>Адрес:</strong><br>{{ candidate.address }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Дата рождения:</strong><br>{{ candidate.birth_date }}</p>
+                            <p><strong>Место рождения:</strong><br>{{ candidate.birth_place }}</p>
+                            <p><strong>Гражданство:</strong><br>{{ candidate.citizenship }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Паспортные данные -->
+                    <h5 class="mt-4">📋 Паспортные данные</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Серия и номер:</strong><br>{{ candidate.passport_series }} {{ candidate.passport_number }}</p>
+                            <p><strong>Дата выдачи:</strong><br>{{ candidate.passport_issue_date }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Кем выдан:</strong><br>{{ candidate.passport_issued_by }}</p>
+                            <p><strong>Код подразделения:</strong><br>{{ candidate.passport_department_code }}</p>
+                        </div>
+                    </div>
+
+                    <!-- ИНН и СНИЛС -->
+                    <h5 class="mt-4">🔢 Документы</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ИНН:</strong><br>{{ candidate.inn }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>СНИЛС:</strong><br>{{ candidate.snils }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Профессиональная информация -->
+                    <h5 class="mt-4">💼 Профессиональная информация</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Общий стаж:</strong><br>{{ candidate.work_experience_total }} лет</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Стаж по специальности:</strong><br>{{ candidate.work_experience_specialty }} лет</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Образование:</strong><br>{{ candidate.get_education_display }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Воинский учет -->
+                    {% if candidate.military_duty %}
+                    <h5 class="mt-4">🎖 Воинский учет</h5>
+                    <p><strong>Военнообязанный:</strong> Да</p>
+                    {% if candidate.military_rank %}<p><strong>Звание:</strong> {{ candidate.military_rank }}</p>{% endif %}
+                    {% if candidate.military_specialty %}<p><strong>Военная специальность:</strong> {{ candidate.military_specialty }}</p>{% endif %}
+                    {% endif %}
+
+                    <!-- Дополнительная информация -->
+                    {% if candidate.additional_info %}
+                    <h5 class="mt-4">📝 Дополнительная информация</h5>
+                    <p>{{ candidate.additional_info }}</p>
+                    {% endif %}
+
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        Добавлен: {{ candidate.created_at|date:"d.m.Y H:i" }} |
+                        Обновлен: {{ candidate.updated_at|date:"d.m.Y H:i" }} |
+                        Статус: {% if candidate.is_approved %}✅ Проверено{% else %}⏳ На проверке{% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6>🔐 Информация о доступе</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Ваша роль:</strong> Администратор</p>
+                    <p><strong>Уровень доступа:</strong> Полный</p>
+                    <div class="alert alert-success mt-3">
+                        <small>
+                            <strong>Доступно:</strong> Все данные включая паспортные<br>
+                            <strong>Возможности:</strong> Полное управление системой
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Быстрые действия для админа -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>⚡ Быстрые действия</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/admin/candidates/personnelform/{{ candidate.id }}/change/"
+                           class="btn btn-outline-primary btn-sm" target="_blank">
+                            Редактировать в админке
+                        </a>
+                        <button class="btn btn-outline-warning btn-sm">
+                            Изменить статус проверки
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

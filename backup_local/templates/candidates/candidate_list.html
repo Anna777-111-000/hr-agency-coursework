@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Кандидаты - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Заголовок и кнопка создания -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>👥 Кандидаты</h1>
+            <p class="text-muted">Управление базой кандидатов</p>
+        </div>
+        {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+        <a href="{% url 'candidate_create' %}" class="btn btn-primary">
+            ➕ Добавить кандидата
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Сообщения -->
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Фильтры -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">🔍 Фильтры</h6>
+                </div>
+                <div class="card-body">
+                    <form method="get">
+                        <!-- Поиск -->
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Поиск</label>
+                            <input type="text" class="form-control" id="search" name="search"
+                                   value="{{ search_query }}" placeholder="Имя, фамилия, email...">
+                        </div>
+
+                        <!-- Опыт работы -->
+                        <div class="mb-3">
+                            <label for="min_experience" class="form-label">Опыт работы от:</label>
+                            <input type="number" class="form-control" id="min_experience" name="min_experience"
+                                   value="{{ min_experience }}" min="0" max="50" placeholder="0 лет">
+                        </div>
+
+                        <!-- Образование -->
+                        <div class="mb-3">
+                            <label class="form-label">Образование</label>
+                            <select class="form-select" name="education">
+                                <option value="">Все</option>
+                                <option value="secondary" {% if education_filter == 'secondary' %}selected{% endif %}>Среднее</option>
+                                <option value="specialized_secondary" {% if education_filter == 'specialized_secondary' %}selected{% endif %}>Среднее специальное</option>
+                                <option value="higher" {% if education_filter == 'higher' %}selected{% endif %}>Высшее</option>
+                                <option value="bachelor" {% if education_filter == 'bachelor' %}selected{% endif %}>Бакалавр</option>
+                                <option value="master" {% if education_filter == 'master' %}selected{% endif %}>Магистр</option>
+                            </select>
+                        </div>
+
+                        <!-- Уровень позиции -->
+                        <div class="mb-3">
+                            <label class="form-label">Уровень позиции</label>
+                            <select class="form-select" name="position_level">
+                                <option value="">Все</option>
+                                <option value="intern" {% if position_level_filter == 'intern' %}selected{% endif %}>Intern</option>
+                                <option value="junior" {% if position_level_filter == 'junior' %}selected{% endif %}>Junior</option>
+                                <option value="middle" {% if position_level_filter == 'middle' %}selected{% endif %}>Middle</option>
+                                <option value="senior" {% if position_level_filter == 'senior' %}selected{% endif %}>Senior</option>
+                                <option value="lead" {% if position_level_filter == 'lead' %}selected{% endif %}>Lead</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Применить фильтры</button>
+                    </form>
+                </div>
+            </div>
+        </div> <!-- ЗАКРЫВАЮЩИЙ ДИВ ДЛЯ КОЛОНКИ С ФИЛЬТРАМИ -->
+
+        <div class="col-md-9">
+            <!-- Список кандидатов -->
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">📋 Список кандидатов</h6>
+                    <span class="badge bg-primary">{{ candidates.paginator.count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if candidates %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ФИО</th>
+                                    <th>Email</th>
+                                    <th>Телефон</th>
+                                    <th>Опыт</th>
+                                    <th>Специализация</th>
+                                    <th>Статус заявки</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for candidate in candidates %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ candidate.last_name }} {{ candidate.first_name }}</strong>
+                                        {% if candidate.patronymic %}
+                                        <br><small class="text-muted">{{ candidate.patronymic }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ candidate.email }}</td>
+                                    <td>
+                                        {% if candidate.phone %}
+                                        {{ candidate.phone }}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if candidate.experience_years %}
+                                        {{ candidate.experience_years }} лет
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if candidate.specialization %}
+                                        {{ candidate.specialization }}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if candidate.applications.exists %}
+                                            {% with app=candidate.applications.first %}
+                                                <span class="badge
+                                                    {% if app.status == 'approved' %}bg-success
+                                                    {% elif app.status == 'pending' %}bg-warning
+                                                    {% elif app.status == 'rejected' %}bg-danger
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ app.get_status_display }}
+                                                </span>
+                                                {% if app.vacancy %}
+                                                <br>
+                                                <small class="text-muted">{{ app.vacancy.title|truncatechars:20 }}</small>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Нет заявок</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'candidate_detail' candidate.id %}" class="btn btn-outline-primary">
+                                                👁️ Подробнее
+                                            </a>
+                                            {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+                                            <a href="{% url 'candidate_edit' candidate.id %}" class="btn btn-outline-warning">
+                                                ✏️
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if candidates.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if candidates.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ candidates.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">←</a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in candidates.paginator.page_range %}
+                                {% if candidates.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if candidates.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ candidates.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if min_experience %}&min_experience={{ min_experience }}{% endif %}">→</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5>Кандидаты не найдены</h5>
+                        <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
+                        {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+                        <a href="{% url 'candidate_create' %}" class="btn btn-primary mt-2">
+                            ➕ Добавить первого кандидата
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

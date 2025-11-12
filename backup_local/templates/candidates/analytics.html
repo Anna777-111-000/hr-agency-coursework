@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Аналитика - HR Агентство{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Заголовок -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h1 class="mb-1">📊 Аналитика рекрутинга</h1>
+            <p class="text-muted mb-0">Метрики и отчеты по работе отдела</p>
+        </div>
+    </div>
+
+    <!-- Основные метрики -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h2 text-primary fw-bold">{{ total_candidates }}</div>
+                    <div class="text-muted small">Кандидатов</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h2 text-success fw-bold">{{ total_vacancies }}</div>
+                    <div class="text-muted small">Вакансий</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h2 text-info fw-bold">{{ total_applications }}</div>
+                    <div class="text-muted small">Заявок</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h2 text-warning fw-bold">{{ conversion_rate }}%</div>
+                    <div class="text-muted small">Конверсия</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h2 text-danger fw-bold">{{ interviews_count }}</div>
+                    <div class="text-muted small">Собеседований</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="h2 text-secondary fw-bold">{{ time_to_hire }}</div>
+                    <div class="text-muted small">Дней до найма</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            <div class="row">
+        <!-- Распределение по опыту -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">📈 Распределение по опыту</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Junior -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Junior (< 2 лет)</span>
+                            <span class="fw-bold text-primary">3 (42,9%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px; border-radius: 10px; background-color: #f8f9fa;">
+                            <div class="progress-bar fw-bold" role="progressbar"
+                                 style="width: 42.9%; background-color: #28a745 !important; border-radius: 10px; min-width: 30px; font-size: 12px; line-height: 20px;">
+                                42,9%
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Middle (2-5 лет)</span>
+                            <span class="fw-bold text-primary">4 (57,1%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px; border-radius: 10px; background-color: #f8f9fa;">
+                            <div class="progress-bar fw-bold" role="progressbar"
+                                 style="width: 57.1%; background-color: #17a2b8 !important; border-radius: 10px; min-width: 30px; font-size: 12px; line-height: 20px;">
+                                57,1%
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Senior -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Senior (> 5 лет)</span>
+                            <span class="fw-bold text-primary">0 (0,0%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px; border-radius: 10px; background-color: #f8f9fa;">
+                            <div class="progress-bar fw-bold" role="progressbar"
+                                 style="width: 3%; background-color: #6c757d !important; border-radius: 10px; min-width: 30px; font-size: 12px; line-height: 20px;">
+                            </div>
+                        </div>
+                        <div class="text-center mt-1">
+                            <small class="text-muted">0,0%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статус заявок -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">🎯 Статус заявок</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in status_data %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>{{ item.status }}</span>
+                            <span class="h4 fw-bold text-primary">{{ item.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Источники кандидатов -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">🌐 Источники кандидатов</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in source_data %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ item.source }}</span>
+                            <span class="fw-bold">{{ item.count }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: {% widthratio item.count total_candidates 100 %}%; background-color: #28a745 !important;"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ключевые метрики -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">📋 Ключевые метрики</h5>
+                </div>
+                <div class="card-body">
+                    {% for metric in metrics %}
+                    <div class="mb-3">
+                        <div class="text-muted small">{{ metric.name }}</div>
+                        <div class="h5 fw-bold text-dark">{{ metric.value }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка назад -->
+    <div class="card mt-4">
+        <div class="card-body text-center">
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                ← Назад к панели управления
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+.progress {
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+.progress-bar {
+    border-radius: 4px;
+}
+</style>
+{% endblock %}

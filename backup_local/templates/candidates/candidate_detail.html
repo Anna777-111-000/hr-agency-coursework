@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ candidate.first_name }} {{ candidate.last_name }} - HR Agency{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Кнопка назад -->
+    <div class="mb-3">
+        <a href="{% url 'candidate_list' %}" class="btn btn-outline-secondary">
+            ← Назад к списку кандидатов
+        </a>
+    </div>
+
+    <!-- Сообщения -->
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Основная информация -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">👤 Основная информация</h4>
+                    {% if candidate.position_level %}
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ candidate.get_position_level_display }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ФИО:</strong> {{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}</p>
+                            <p><strong>Email:</strong> {{ candidate.email }}</p>
+                            {% if candidate.phone %}
+                            <p><strong>Телефон:</strong> {{ candidate.phone }}</p>
+                            {% endif %}
+                            {% if candidate.age %}
+                            <p><strong>Возраст:</strong> {{ candidate.age }} лет</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if candidate.experience_years %}
+                            <p><strong>Опыт работы:</strong> {{ candidate.experience_years }} лет</p>
+                            {% endif %}
+                            {% if candidate.specialization %}
+                            <p><strong>Специализация:</strong> {{ candidate.specialization }}</p>
+                            {% endif %}
+                            {% if candidate.employment_status %}
+                            <p><strong>Статус трудоустройства:</strong> {{ candidate.get_employment_status_display }}</p>
+                            {% endif %}
+                            {% if candidate.work_format %}
+                            <p><strong>Формат работы:</strong> {{ candidate.get_work_format_display }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Профессиональная информация -->
+            {% if candidate.last_workplace or candidate.last_position or candidate.responsibilities %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">💼 Профессиональная информация</h5>
+                </div>
+                <div class="card-body">
+                    {% if candidate.last_workplace %}
+                    <p><strong>Последнее место работы:</strong> {{ candidate.last_workplace }}</p>
+                    {% endif %}
+                    {% if candidate.last_position %}
+                    <p><strong>Должность:</strong> {{ candidate.last_position }}</p>
+                    {% endif %}
+                    {% if candidate.work_period %}
+                    <p><strong>Период работы:</strong> {{ candidate.work_period }}</p>
+                    {% endif %}
+                    {% if candidate.responsibilities %}
+                    <div class="mt-3">
+                        <strong>Обязанности и достижения:</strong>
+                        <div class="mt-2 p-3 bg-light rounded">
+                            {{ candidate.responsibilities|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Образование -->
+            {% if candidate.education_level %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">🎓 Образование</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Уровень:</strong> {{ candidate.get_education_level_display }}</p>
+                            {% if candidate.education_institution %}
+                            <p><strong>Учебное заведение:</strong> {{ candidate.education_institution }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if candidate.education_specialty %}
+                            <p><strong>Специальность:</strong> {{ candidate.education_specialty }}</p>
+                            {% endif %}
+                            {% if candidate.graduation_year %}
+                            <p><strong>Год окончания:</strong> {{ candidate.graduation_year }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Примечания рекрутера -->
+            {% if candidate.recruiter_notes or candidate.next_actions or candidate.candidate_features %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📝 Примечания рекрутера</h5>
+                </div>
+                <div class="card-body">
+                    {% if candidate.recruiter_notes %}
+                    <div class="mb-3">
+                        <strong>Внутренние комментарии:</strong>
+                        <div class="mt-1 p-2 bg-white border rounded">
+                            {{ candidate.recruiter_notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.next_actions %}
+                    <div class="mb-3">
+                        <strong>План следующих действий:</strong>
+                        <div class="mt-1 p-2 bg-white border rounded">
+                            {{ candidate.next_actions|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.candidate_features %}
+                    <div class="mb-3">
+                        <strong>Особенности кандидата:</strong>
+                        <div class="mt-1 p-2 bg-white border rounded">
+                            {{ candidate.candidate_features|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Боковая панель -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">📋 Дополнительная информация</h6>
+                </div>
+                <div class="card-body">
+                    {% if candidate.desired_salary %}
+                    <div class="mb-3">
+                        <strong>Желаемая зарплата:</strong>
+                        <div class="fw-bold text-success fs-5">{{ candidate.desired_salary }} руб.</div>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.notice_period %}
+                    <div class="mb-3">
+                        <strong>Срок выхода на работу:</strong>
+                        <div>{{ candidate.notice_period }}</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <strong>Дата добавления:</strong>
+                        <div>{{ candidate.created_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Последнее обновление:</strong>
+                        <div>{{ candidate.updated_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Навыки -->
+            {% if candidate.skills.all %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">🛠️ Навыки</h6>
+                </div>
+                <div class="card-body">
+                    {% for skill in candidate.skills.all %}
+                    <span class="badge bg-primary mb-2 me-1 fs-6">{{ skill.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Информация для рекрутеров -->
+            {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">🔍 Информация для рекрутеров</h6>
+                </div>
+                <div class="card-body">
+                    {% if candidate.source %}
+                    <div class="mb-2">
+                        <strong>Источник:</strong>
+                        <span class="badge bg-secondary">{{ candidate.get_source_display }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.source_details %}
+                    <div class="mb-2">
+                        <strong>Детали источника:</strong>
+                        <div class="small">{{ candidate.source_details }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.assigned_recruiter %}
+                    <div class="mb-2">
+                        <strong>Ответственный рекрутер:</strong>
+                        <div>{{ candidate.assigned_recruiter }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if candidate.resume %}
+                    <div class="mt-3">
+                        <strong>Резюме:</strong>
+                        <div class="mt-2">
+                            {% if candidate.resume.url %}
+                                <!-- Просмотр резюме (открывает в новой вкладке) -->
+                                <a href="{{ candidate.resume.url }}" class="btn btn-outline-primary btn-sm me-1" target="_blank">
+                                    👁️ Просмотреть резюме
+                                </a>
+                                <!-- Скачивание резюме -->
+                                <a href="{% url 'download_resume' candidate.id %}" class="btn btn-outline-success btn-sm me-1">
+                                    ⬇️ Скачать резюме
+                                </a>
+                            {% else %}
+                                <!-- Если нет URL, только скачивание -->
+                                <a href="{% url 'download_resume' candidate.id %}" class="btn btn-outline-primary btn-sm">
+                                    📎 Скачать резюме
+                                </a>
+                            {% endif %}
+                            <small class="d-block text-muted mt-1">
+                                Файл: {{ candidate.resume.name|cut:"resumes/" }}
+                            </small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mt-3">
+                        <strong>Резюме:</strong>
+                        <div class="text-muted">
+                            <small>Резюме не прикреплено</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Действия -->
+            {% if user.role == 'recruiter' or user.role == 'manager' or user.role == 'admin' %}
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">⚡ Действия</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <!-- Прикрепить к вакансии -->
+                        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#attachVacancyModal">
+                            📋 Прикрепить к вакансии
+                        </button>
+
+                        <!-- Заполнить анкету -->
+                        {% if user.role in 'manager,admin' and candidate.personnel_form %}
+                        <a href="{% url 'fill_personnel_form' candidate.id %}" class="btn btn-info">
+                            📝 Заполнить анкету
+                        </a>
+                        {% endif %}
+
+                        <!-- Редактировать кандидата -->
+                        <a href="{% url 'candidate_edit' candidate.id %}" class="btn btn-outline-warning">
+                            ✏️ Редактировать
+                        </a>
+
+                        <!-- Действия с резюме -->
+                        {% if candidate.resume %}
+                            {% if candidate.resume.url %}
+                            <a href="{{ candidate.resume.url }}" class="btn btn-outline-info" target="_blank">
+                                📄 Просмотреть резюме
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'download_resume' candidate.id %}" class="btn btn-outline-primary">
+                                ⬇️ Скачать резюме
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для прикрепления к вакансии -->
+<div class="modal fade" id="attachVacancyModal" tabindex="-1" aria-labelledby="attachVacancyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="attachVacancyModalLabel">📋 Прикрепить к вакансии</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="attachVacancyForm" method="post" action="{% url 'attach_candidate_to_vacancy' candidate.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="vacancySelect" class="form-label">Выберите вакансию:</label>
+                        <select class="form-select" id="vacancySelect" name="vacancy_id" required>
+                            <option value="">-- Выберите вакансию --</option>
+                            {% for vacancy in open_vacancies %}
+                            <option value="{{ vacancy.id }}">{{ vacancy.title }} ({{ vacancy.get_status_display }})</option>
+                            {% empty %}
+                            <option value="">Нет открытых вакансий</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="applicationNotes" class="form-label">Комментарий к отклику:</label>
+                        <textarea class="form-control" id="applicationNotes" name="notes" rows="3"
+                                  placeholder="Дополнительная информация о кандидате для этой вакансии..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" form="attachVacancyForm" class="btn btn-success">Прикрепить кандидата</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+.alert {
+    border-radius: 0.5rem;
+}
+.modal-content {
+    border-radius: 0.5rem;
+    border: none;
+}
+.form-control, .form-select {
+    border-radius: 0.375rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматически скрываем сообщения через 5 секунд
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+
+    // Обработка успешного сохранения формы прикрепления к вакансии
+    const attachForm = document.getElementById('attachVacancyForm');
+    if (attachForm) {
+        attachForm.addEventListener('submit', function() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('attachVacancyModal'));
+            modal.hide();
+        });
+    }
+});
+</script>
+{% endblock %}

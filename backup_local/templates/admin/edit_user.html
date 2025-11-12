@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактирование пользователя{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">✏️ Редактирование пользователя</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Редактирование данных пользователя: <strong>{{ user_obj.username }}</strong></p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Имя пользователя</label>
+                                <input type="text" class="form-control" value="{{ user_obj.username }}" disabled>
+                                <div class="form-text">Логин нельзя изменить</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email адрес</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ user_obj.email|default:'' }}" placeholder="email@example.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone_number" class="form-label">Телефон *</label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                      value="{{ user_obj.phone_number|default:'' }}" placeholder="+7 (XXX) XXX-XX-XX" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                       value="{{ user_obj.first_name|default:'' }}" placeholder="Введите имя">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Фамилия</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                       value="{{ user_obj.last_name|default:'' }}" placeholder="Введите фамилию">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Новый пароль</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="Оставьте пустым, если не нужно менять">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="role" class="form-label">Роль пользователя *</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="recruiter" {% if user_obj.role == 'recruiter' %}selected{% endif %}>Рекрутер</option>
+                                    <option value="manager" {% if user_obj.role == 'manager' %}selected{% endif %}>Менеджер</option>
+                                    <option value="administrator" {% if user_obj.role == 'administrator' %}selected{% endif %}>Администратор</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{% url 'admin:user_management' %}" class="btn btn-outline-secondary">
+                                    ← Отмена
+                                </a>
+                                <button type="submit" class="btn btn-warning">
+                                    💾 Сохранить изменения
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Административная панель - HR System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h2>🛡️ Административная панель системы</h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Добро пожаловать, {{ user.username }}! Вы вошли как <strong>Системный администратор</strong></p>
+
+                    <div class="alert alert-info">
+                        <h5>Ваша роль: <strong>Администратор системы</strong></h5>
+                        <p class="mb-0">Вы отвечаете за техническую поддержку и настройку HR-системы</p>
+                    </div>
+
+                    <div class="row mt-4">
+                        <!-- Карточка управления пользователями -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h3>👥</h3>
+                                    <h5 class="card-title">Управление пользователями</h5>
+                                    <p class="card-text">Создание пользователей, назначение ролей, управление доступом</p>
+                                    <a href="{% url 'user_management' %}" class="btn btn-primary">Перейти</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка админки Django -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h3>🔧</h3>
+                                    <h5 class="card-title">Админка Django</h5>
+                                    <p class="card-text">Прямой доступ к базе данных и моделям системы</p>
+                                    <a href="/admin/" class="btn btn-warning" target="_blank">Открыть админку</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Быстрая статистика -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>📈 Быстрая статистика системы</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-3">
+                                            <h4>{{ total_users }}</h4>
+                                            <small class="text-muted">Всего пользователей</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h4>{{ active_users }}</h4>
+                                            <small class="text-muted">Активных пользователей</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h4>{{ system_uptime }}</h4>
+                                            <small class="text-muted">Дней работы</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h4>{{ last_backup }}</h4>
+                                            <small class="text-muted">Последнее резервное копирование</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить вакансию - HR System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">🗑️ Удаление вакансии</h4>
+                </div>
+                <div class="card-body">
+                    <p class="alert alert-warning">
+                        <strong>Внимание!</strong> Вы собираетесь удалить вакансию:
+                    </p>
+
+                    <h5>"{{ vacancy.title }}"</h5>
+
+                    <p class="text-muted">
+                        <strong>Статус:</strong> {{ vacancy.get_status_display }}<br>
+                        <strong>Создана:</strong> {{ vacancy.created_at|date:"d.m.Y" }}<br>
+                        <strong>Создатель:</strong> {{ vacancy.created_by.username }}
+                    </p>
+
+                    <div class="alert alert-danger">
+                        <strong>Это действие нельзя отменить!</strong> Все данные вакансии будут удалены.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'vacancy_detail' vacancy.id %}" class="btn btn-secondary">
+                                ← Отмена
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                🗑️ Удалить вакансию
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

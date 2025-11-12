@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление навыками - HR System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>🛠️ Управление навыками</h1>
+            <p class="lead">Создание и редактирование навыков для вакансий и кандидатов</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Форма создания навыка -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">➕ Добавить навык</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.name.label_tag }}
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Создать навык</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список навыков -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Список навыков ({{ skills.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if skills %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for skill in skills %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ skill.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'skill_edit' skill.id %}" class="btn btn-outline-primary">
+                                                ✏️ Изменить
+                                            </a>
+                                            <a href="{% url 'skill_delete' skill.id %}" class="btn btn-outline-danger">
+                                                🗑️ Удалить
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Нет навыков</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
