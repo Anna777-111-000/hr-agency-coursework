@@ -282,12 +282,15 @@ def personnel_form(request):
 
 @role_required(['manager', 'admin'])
 def personnel_form_list(request):
-    """Список ВСЕХ кандидатов для менеджера - с анкетами и без"""
+    """Список кандидатов ДЛЯ МЕНЕДЖЕРА - только с анкетами И прикрепленные к вакансиям"""
 
-    # Получаем ВСЕХ кандидатов
-    candidates_list = Candidate.objects.all().prefetch_related('personnel_form').order_by('-created_at')
+    # Получаем кандидатов с анкетами И с заявками на вакансии
+    candidates_list = Candidate.objects.filter(
+        personnel_form__isnull=False,
+        applications__isnull=False
+    ).distinct().prefetch_related('personnel_form').order_by('-created_at')
 
-    print(f"DEBUG: Всего кандидатов: {candidates_list.count()}")
+    print(f"DEBUG: Кандидатов с анкетами и заявками: {candidates_list.count()}")
 
     # Поиск
     search_query = request.GET.get('search', '')
@@ -315,7 +318,6 @@ def personnel_form_list(request):
     approved_count = candidates_list.filter(personnel_form__candidate_status='accepted').count()
     pending_count = candidates_list.filter(personnel_form__candidate_status='new').count()
     rejected_count = candidates_list.filter(personnel_form__candidate_status='rejected').count()
-    no_form_count = candidates_list.filter(personnel_form__isnull=True).count()
 
     context = {
         'candidates': candidates,
@@ -323,12 +325,12 @@ def personnel_form_list(request):
         'approved_count': approved_count,
         'pending_count': pending_count,
         'rejected_count': rejected_count,
-        'no_form_count': no_form_count,
         'search_query': search_query,
         'status_filter': status_filter,
     }
 
     return render(request, 'candidates/personnel_form_list.html', context)
+
 
 
 @login_required
