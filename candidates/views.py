@@ -282,59 +282,54 @@ def personnel_form(request):
 
 @role_required(['manager', 'admin'])
 def personnel_form_list(request):
-    """Список ВСЕХ кандидатов с анкетами для менеджера"""
+    """Список ВСЕХ кандидатов для менеджера - с анкетами и без"""
 
-    # Получаем ВСЕ формы с кандидатами
-    forms_list = PersonnelForm.objects.all().select_related('candidate').order_by('-created_at')
+    # Получаем ВСЕХ кандидатов
+    candidates_list = Candidate.objects.all().prefetch_related('personnel_form').order_by('-created_at')
 
-    print(f"DEBUG: Всего анкет: {forms_list.count()}")
-
-    # ВЫВОДИМ ОТЛАДОЧНУЮ ИНФОРМАЦИЮ
-    for form in forms_list:
-        candidate_info = f"{form.candidate.first_name} {form.candidate.last_name}" if form.candidate else "НЕТ КАНДИДАТА"
-        app_status = "Нет заявок"
-        if form.candidate and form.candidate.applications.exists():
-            app_status = form.candidate.applications.first().status
-        print(f"DEBUG: Форма {form.id}: {form.candidate_status} | Заявка: {app_status} | Кандидат: {candidate_info}")
+    print(f"DEBUG: Всего кандидатов: {candidates_list.count()}")
 
     # Поиск
     search_query = request.GET.get('search', '')
     if search_query:
-        forms_list = forms_list.filter(
+        candidates_list = candidates_list.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(candidate__first_name__icontains=search_query) |
-            Q(candidate__last_name__icontains=search_query)
+            Q(email__icontains=search_query)
         )
 
     # Фильтрация по статусу
     status_filter = request.GET.get('status', '')
     if status_filter:
-        forms_list = forms_list.filter(candidate_status=status_filter)
+        candidates_list = candidates_list.filter(
+            personnel_form__candidate_status=status_filter
+        )
 
     # Пагинация
-    paginator = Paginator(forms_list, 10)
+    paginator = Paginator(candidates_list, 10)
     page_number = request.GET.get('page')
-    forms = paginator.get_page(page_number)
+    candidates = paginator.get_page(page_number)
 
     # Статистика
-    total_forms = forms_list.count()
-    approved_forms = forms_list.filter(candidate_status='accepted').count()
-    pending_forms = forms_list.filter(candidate_status='new').count()
-    rejected_forms = forms_list.filter(candidate_status='rejected').count()
+    total_candidates = candidates_list.count()
+    approved_count = candidates_list.filter(personnel_form__candidate_status='accepted').count()
+    pending_count = candidates_list.filter(personnel_form__candidate_status='new').count()
+    rejected_count = candidates_list.filter(personnel_form__candidate_status='rejected').count()
+    no_form_count = candidates_list.filter(personnel_form__isnull=True).count()
 
     context = {
-        'forms': forms,
-        'total_forms': total_forms,
-        'approved_forms': approved_forms,
-        'pending_forms': pending_forms,
-        'rejected_forms': rejected_forms,
+        'candidates': candidates,
+        'total_candidates': total_candidates,
+        'approved_count': approved_count,
+        'pending_count': pending_count,
+        'rejected_count': rejected_count,
+        'no_form_count': no_form_count,
         'search_query': search_query,
         'status_filter': status_filter,
     }
 
     return render(request, 'candidates/personnel_form_list.html', context)
+
 
 @login_required
 def manager_dashboard(request):
@@ -348,16 +343,27 @@ def manager_dashboard(request):
     total_vacancies = Vacancy.objects.count()
     open_vacancies = Vacancy.objects.filter(status='open').count()
 
-    # Статистика заявок
+    # ИСПРАВЛЕННАЯ СТАТИСТИКА ЗАЯВОК
     try:
+        # Используем абсолютный импорт
         from candidates.models import Application
-        total_applications = Application.objects.count()
+
+        # Подсчитываем заявки по статусам
         approved_applications = Application.objects.filter(status='approved').count()
         pending_applications = Application.objects.filter(status='pending').count()
         rejected_applications = Application.objects.filter(status='rejected').count()
+        total_applications = Application.objects.count()
+
+        print(
+            f"DEBUG: approved={approved_applications}, pending={pending_applications}, rejected={rejected_applications}")
+
     except Exception as e:
         print(f"Ошибка при загрузке заявок: {e}")
-        total_applications = approved_applications = pending_applications = rejected_applications = 0
+        # Устанавливаем значения по умолчанию
+        approved_applications = 0
+        pending_applications = 0
+        rejected_applications = 0
+        total_applications = 0
 
     # Форматы работы
     office_vacancies = Vacancy.objects.filter(work_format='office').count()
@@ -373,7 +379,7 @@ def manager_dashboard(request):
     recent_candidates = Candidate.objects.all().order_by('-created_at')[:5]
     open_vacancies_list = Vacancy.objects.filter(status='open').order_by('-created_at')[:5]
 
-    # Источники кандидатов - исправленная версия
+    # Источники кандидатов
     source_stats = {}
     try:
         source_choices = Candidate._meta.get_field('source').choices
@@ -462,6 +468,28 @@ def candidate_analytics(request):
         }
     ]
 
+    # ИСПРАВЛЕННЫЙ ПОДСЧЕТ ИСТОЧНИКОВ КАНДИДАТОВ
+    source_data = []
+    try:
+        source_choices = Candidate._meta.get_field('source').choices
+        for source_code, source_name in source_choices:
+            count = Candidate.objects.filter(source=source_code).count()
+            if count > 0:
+                source_data.append({
+                    'source': source_name,
+                    'count': count
+                })
+    except Exception as e:
+        print(f"Ошибка при загрузке источников: {e}")
+        # Fallback на статический список в случае ошибки
+        source_data = [
+            {'source': 'HH.ru', 'count': Candidate.objects.filter(source='hh').count()},
+            {'source': 'LinkedIn', 'count': Candidate.objects.filter(source='linkedin').count()},
+            {'source': 'Habr Career', 'count': Candidate.objects.filter(source='habr').count()},
+            {'source': 'Рекомендация', 'count': Candidate.objects.filter(source='recommendation').count()},
+            {'source': 'Другое', 'count': Candidate.objects.filter(source='other').count()},
+        ]
+
     context = {
         'total_candidates': total_candidates,
         'total_vacancies': total_vacancies,
@@ -479,13 +507,7 @@ def candidate_analytics(request):
             {'status': 'Отклонено', 'count': rejected_count},
         ],
 
-        'source_data': [
-            {'source': 'HH.ru', 'count': Candidate.objects.filter(source='hh').count()},
-            {'source': 'LinkedIn', 'count': Candidate.objects.filter(source='linkedin').count()},
-            {'source': 'Habr Career', 'count': Candidate.objects.filter(source='habr').count()},
-            {'source': 'Рекомендация', 'count': Candidate.objects.filter(source='referral').count()},
-            {'source': 'Другое', 'count': Candidate.objects.filter(source='other').count()},
-        ],
+        'source_data': source_data,  # ИСПРАВЛЕННЫЙ СПИСОК ИСТОЧНИКОВ
 
         'metrics': [
             {'name': 'Среднее время закрытия вакансии', 'value': '45 дн.'},
@@ -604,137 +626,59 @@ def recruitment_analytics(request):
     total_interviews = Interview.objects.count()
     upcoming_interviews = Interview.objects.filter(status='scheduled').count()
 
-    # Статистика по опыту
-    experience_stats = {
-        'junior': Candidate.objects.filter(experience_years__lt=2).count(),
-        'middle': Candidate.objects.filter(experience_years__range=[2, 5]).count(),
-        'senior': Candidate.objects.filter(experience_years__gt=5).count(),
-    }
+    # Опыт кандидатов - ИСПРАВЛЕННЫЙ ФОРМАТ (как в candidate_analytics)
+    experience_data = [
+        {
+            'level': 'Junior (< 2 лет)',
+            'count': Candidate.objects.filter(experience_years__lt=2).count(),
+            'percentage': round((Candidate.objects.filter(
+                experience_years__lt=2).count() / total_candidates * 100) if total_candidates > 0 else 0, 1)
+        },
+        {
+            'level': 'Middle (2-5 лет)',
+            'count': Candidate.objects.filter(experience_years__gte=2, experience_years__lte=5).count(),
+            'percentage': round((Candidate.objects.filter(experience_years__gte=2,
+                                                          experience_years__lte=5).count() / total_candidates * 100) if total_candidates > 0 else 0, 1)
+        },
+        {
+            'level': 'Senior (> 5 лет)',
+            'count': Candidate.objects.filter(experience_years__gt=5).count(),
+            'percentage': round((Candidate.objects.filter(
+                experience_years__gt=5).count() / total_candidates * 100) if total_candidates > 0 else 0, 1)
+        }
+    ]
 
-    # Источники кандидатов
-    source_stats = {}
-    source_choices = Candidate._meta.get_field('source').choices
-    for source_code, source_name in source_choices:
-        count = Candidate.objects.filter(source=source_code).count()
-        if count > 0:
-            source_stats[source_name] = count
-
-    # Активность по месяцам (последние 3 месяца)
-    from django.utils import timezone
-    from django.db.models import Count
-    from datetime import timedelta
-
-    monthly_stats = []
-    for i in range(3):
-        month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(days=30 * i)
-        month_end = month_start + timedelta(days=30)
-
-        month_candidates = Candidate.objects.filter(
-            created_at__gte=month_start,
-            created_at__lt=month_end
-        ).count()
-
-        month_interviews = Interview.objects.filter(
-            scheduled_date__gte=month_start,
-            scheduled_date__lt=month_end
-        ).count()
-
-        # Для наймов используем одобренные заявки
-        month_hires = Application.objects.filter(
-            status='approved',
-            applied_date__gte=month_start,
-            applied_date__lt=month_end
-        ).count()
-
-        month_name = month_start.strftime('%B')
-        if month_start.year != timezone.now().year:
-            month_name = f"{month_start.strftime('%B')} {month_start.year}"
-
-        monthly_stats.append({
-            'month': month_name,
-            'candidates': month_candidates,
-            'interviews': month_interviews,
-            'hires': month_hires
-        })
-
-    # Топ вакансий по количеству заявок
-    from django.db.models import Count
-    top_vacancies = Vacancy.objects.annotate(
-        applications_count=Count('applications')
-    ).order_by('-applications_count')[:5]
-
-    top_vacancies_list = []
-    for vacancy in top_vacancies:
-        top_vacancies_list.append({
-            'title': vacancy.title,
-            'applications_count': vacancy.applications_count,
-            'status': vacancy.status
-        })
-
-    # Эффективность рекрутеров
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-
-    recruiter_stats = []
-    recruiters = User.objects.filter(role='recruiter')
-
-    for recruiter in recruiters:
-        # Кандидаты, прикрепленные к рекрутеру
-        recruiter_candidates = Candidate.objects.filter(
-            assigned_recruiter=recruiter.get_full_name() or recruiter.username
-        ).count()
-
-        # Заявки, созданные рекрутером (если есть связь)
-        try:
-            recruiter_applications = Application.objects.filter(
-                # Здесь нужно добавить логику для связи заявок с рекрутером
-                # В текущей модели нет прямого поля, используем кандидатов рекрутера
-            ).count()
-        except:
-            recruiter_applications = 0
-
-        # Простая конверсия (можно улучшить)
-        conversion_rate = 0
-        if recruiter_candidates > 0:
-            conversion_rate = round((recruiter_applications / recruiter_candidates) * 100, 1)
-
-        recruiter_stats.append({
-            'name': recruiter.get_full_name() or recruiter.username,
-            'candidates': recruiter_candidates,
-            'conversion_rate': conversion_rate
-        })
-
-    # Ключевые метрики (расчетные)
-    conversion_rate = 0
-    if total_candidates > 0 and total_applications > 0:
-        conversion_rate = round((total_applications / total_candidates) * 100, 1)
-
-    # Среднее время до найма (упрощенный расчет)
+    # Источники кандидатов - ИСПРАВЛЕННЫЙ ФОРМАТ (как в candidate_analytics)
+    source_data = []
     try:
-        approved_apps = Application.objects.filter(status='approved')
-        if approved_apps.exists():
-            total_days = 0
-            count = 0
-            for app in approved_apps:
-                # Разница между датой создания кандидата и датой одобрения заявки
-                candidate_created = app.candidate.created_at
-                app_approved = app.applied_date  # Используем applied_date как приближение
-                days_diff = (app_approved - candidate_created).days
-                if days_diff > 0:
-                    total_days += days_diff
-                    count += 1
+        source_choices = Candidate._meta.get_field('source').choices
+        for source_code, source_name in source_choices:
+            count = Candidate.objects.filter(source=source_code).count()
+            if count > 0:
+                source_data.append({
+                    'source': source_name,
+                    'count': count
+                })
+    except Exception as e:
+        print(f"Ошибка при загрузке источников: {e}")
 
-            avg_time_to_hire = round(total_days / count) if count > 0 else 14
-        else:
-            avg_time_to_hire = 14
-    except:
-        avg_time_to_hire = 14
+    # Статусы заявок - ИСПРАВЛЕННЫЙ ФОРМАТ (как в candidate_analytics)
+    status_data = [
+        {'status': 'Одобрено', 'count': approved_applications},
+        {'status': 'На рассмотрении', 'count': pending_applications},
+        {'status': 'Отклонено', 'count': rejected_applications},
+    ]
 
-    # Дополнительные метрики (можно расширить)
-    time_to_fill = 21  # Можно рассчитать на основе реальных данных
-    candidate_satisfaction = 85  # Пока статическое значение
-    cost_per_hire = 15000  # Пока статическое значение
-    retention_rate = 92  # Пока статическое значение
+    # Конверсия (одобренные / все заявки)
+    conversion_rate = round((approved_applications / total_applications * 100) if total_applications > 0 else 0, 1)
+
+    # Ключевые метрики
+    metrics = [
+        {'name': 'Среднее время закрытия вакансии', 'value': '45 дн.'},
+        {'name': 'Удовлетворенность кандидатов', 'value': '85%'},
+        {'name': 'Стоимость одного найма', 'value': '25,000 руб.'},
+        {'name': 'Удержание через 6 месяцев', 'value': '92%'},
+    ]
 
     context = {
         'total_candidates': total_candidates,
@@ -746,28 +690,14 @@ def recruitment_analytics(request):
         'total_interviews': total_interviews,
         'upcoming_interviews': upcoming_interviews,
         'conversion_rate': conversion_rate,
-        'avg_time_to_hire': avg_time_to_hire,
+        'interviews_count': pending_applications,  # Предполагаем, что pending = собеседования
+        'time_to_hire': 45,  # Можно рассчитать из дат, но пока заглушка
 
-        # Статистика по опыту
-        'experience_stats': experience_stats,
-
-        # Источники кандидатов
-        'source_stats': source_stats,
-
-        # Активность по месяцам
-        'monthly_stats': monthly_stats,
-
-        # Топ вакансий
-        'top_vacancies': top_vacancies_list,
-
-        # Эффективность рекрутеров
-        'recruiter_stats': recruiter_stats,
-
-        # Ключевые метрики
-        'time_to_fill': time_to_fill,
-        'candidate_satisfaction': candidate_satisfaction,
-        'cost_per_hire': cost_per_hire,
-        'retention_rate': retention_rate,
+        # Исправленные форматы данных
+        'experience_data': experience_data,
+        'source_data': source_data,
+        'status_data': status_data,
+        'metrics': metrics,
     }
 
     return render(request, 'candidates/analytics.html', context)
@@ -816,10 +746,18 @@ def personnel_form_reject(request, form_id):
 def personnel_candidate_list(request):
     """Показываем ВСЕХ кандидатов для менеджера"""
 
-    # ИСПРАВЛЕНИЕ: personnel_form вместо personnelform
     candidates_list = Candidate.objects.all().select_related('personnel_form').order_by('-created_at')
 
     print(f"DEBUG: Всего кандидатов для отображения: {candidates_list.count()}")
+
+    # Поиск
+    search_query = request.GET.get('search', '')
+    if search_query:
+        candidates_list = candidates_list.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
 
     # Фильтрация по статусу
     status_filter = request.GET.get('status', '')
@@ -828,11 +766,17 @@ def personnel_candidate_list(request):
             personnel_form__candidate_status=status_filter
         )
 
+    # Пагинация
+    paginator = Paginator(candidates_list, 10)
+    page_number = request.GET.get('page')
+    candidates = paginator.get_page(page_number)
+
     # Статистика
     total_candidates = candidates_list.count()
     approved_count = candidates_list.filter(personnel_form__candidate_status='accepted').count()
     pending_count = candidates_list.filter(personnel_form__candidate_status='new').count()
     rejected_count = candidates_list.filter(personnel_form__candidate_status='rejected').count()
+
     context = {
         'candidates': candidates,
         'total_candidates': total_candidates,
@@ -845,6 +789,24 @@ def personnel_candidate_list(request):
 
     return render(request, 'candidates/personnel_candidate_list.html', context)
 
+def sync_candidate_status(candidate):
+    """Синхронизирует статус конкретного кандидата"""
+    try:
+        application = Application.objects.filter(candidate=candidate).first()
+        if application and hasattr(candidate, 'personnel_form') and candidate.personnel_form:
+            if candidate.personnel_form.candidate_status == 'accepted':
+                application.status = 'approved'
+            elif candidate.personnel_form.candidate_status == 'rejected':
+                application.status = 'rejected'
+            elif candidate.personnel_form.candidate_status == 'new':
+                application.status = 'pending'
+            application.save()
+            return True
+    except Exception as e:
+        print(f"Ошибка синхронизации статуса для кандидата {candidate.id}: {e}")
+    return False
+
+
 @login_required
 @role_required(['manager', 'admin'])
 def approve_candidate(request, candidate_id):
@@ -855,11 +817,16 @@ def approve_candidate(request, candidate_id):
         candidate.personnel_form.candidate_status = 'accepted'
         candidate.personnel_form.is_approved = True
         candidate.personnel_form.save()
+
+        # Синхронизируем статус заявки
+        sync_candidate_status(candidate)
+
         messages.success(request, f'Кандидат {candidate.first_name} {candidate.last_name} одобрен!')
     else:
         messages.error(request, 'Форма персонала не найдена для этого кандидата')
 
     return redirect('personnel_candidate_list')
+
 
 @login_required
 @role_required(['manager', 'admin'])
@@ -867,11 +834,14 @@ def reject_candidate(request, candidate_id):
     """Отклонение кандидата менеджером"""
     candidate = get_object_or_404(Candidate, id=candidate_id)
 
-
     if hasattr(candidate, 'personnel_form') and candidate.personnel_form:
         candidate.personnel_form.candidate_status = 'rejected'
         candidate.personnel_form.is_approved = False
         candidate.personnel_form.save()
+
+        # Синхронизируем статус заявки
+        sync_candidate_status(candidate)
+
         messages.success(request, f'Кандидат {candidate.first_name} {candidate.last_name} отклонен!')
     else:
         messages.error(request, 'Форма персонала не найдена для этого кандидата')
@@ -940,9 +910,9 @@ def link_candidates_to_forms(request):
                     candidate=candidate
                 )
                 created_count += 1
-                print(f"📝 Создана форма для: {candidate.first_name} {candidate.last_name}")
+                print(f" Создана форма для: {candidate.first_name} {candidate.last_name}")
             except Exception as e:
-                print(f"❌ Ошибка создания формы для {candidate.first_name}: {e}")
+                print(f"Ошибка создания формы для {candidate.first_name}: {e}")
 
     # Статистика
     total_linked = Candidate.objects.filter(personnel_form__isnull=False).count()
@@ -955,7 +925,7 @@ def link_candidates_to_forms(request):
 
     messages.success(request,
                      f'Связано {linked_count} кандидатов, создано {created_count} новых форм. Всего с формами: {total_linked}/{total_candidates}')
-    return redirect('personnel_candidate_list')
+    return redirect('personnel_form_list')
 
 
 @login_required
@@ -985,3 +955,23 @@ def fill_personnel_form(request, candidate_id):
         'candidate': candidate,
         'personnel_form': personnel_form
     })
+
+
+@role_required(['manager', 'admin'])
+def sync_all_statuses(request):
+    """Синхронизирует все статусы заявок с анкетами"""
+    candidates = Candidate.objects.all()
+    synced_count = 0
+    error_count = 0
+
+    for candidate in candidates:
+        try:
+            # Используем функцию sync_candidate_status вместо метода модели
+            if sync_candidate_status(candidate):
+                synced_count += 1
+        except Exception as e:
+            print(f"Ошибка синхронизации для кандидата {candidate.id}: {e}")
+            error_count += 1
+
+    messages.success(request, f'Синхронизировано {synced_count} статусов. Ошибок: {error_count}')
+    return redirect('personnel_form_list')

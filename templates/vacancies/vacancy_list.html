@@ -24,7 +24,11 @@
                     {% if user.role == 'manager' or user.role == 'admin' %}
                     <div class="mb-2">
                         <small class="text-muted">Черновиков:</small>
-                        <div class="fw-bold text-warning">{{ vacancies.paginator.count|add:"-open_vacancies" }}</div>
+                        <div class="fw-bold text-warning">{{ draft_vacancies }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Закрытых:</small>
+                        <div class="fw-bold text-secondary">{{ closed_vacancies }}</div>
                     </div>
                     {% endif %}
                 </div>

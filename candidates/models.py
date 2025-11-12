@@ -263,6 +263,31 @@ class PersonnelForm(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
     is_approved = models.BooleanField(default=False, verbose_name="Проверено отделом кадров")
 
+    # В классе Candidate или PersonnelForm добавьте:
+    def sync_application_status(self):
+        """Синхронизирует статус заявки с статусом анкеты"""
+        try:
+            if hasattr(self, 'personnel_form') and self.personnel_form:
+                # Получаем соответствующую заявку (application)
+                from .models import Application
+                application = Application.objects.filter(candidate=self).first()
+
+                if application:
+                    # Синхронизируем статусы
+                    if self.personnel_form.candidate_status == 'accepted':
+                        application.status = 'approved'
+                    elif self.personnel_form.candidate_status == 'rejected':
+                        application.status = 'rejected'
+                    elif self.personnel_form.candidate_status == 'new':
+                        application.status = 'pending'
+
+                    application.save()
+                    return True
+        except Exception as e:
+            print(f"Ошибка синхронизации статуса для кандидата {self.id}: {e}")
+
+        return False
+
     def __str__(self):
         return f"{self.last_name} {self.first_name} {self.patronymic}"
 

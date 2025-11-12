@@ -1,27 +1,26 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Vacancy, Skill
 from .forms import VacancyForm, SkillForm
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def role_required(allowed_roles):
     """Декоратор для проверки ролей пользователя"""
-
     def decorator(view_func):
         @login_required
         def wrapper(request, *args, **kwargs):
             if hasattr(request.user, 'role') and request.user.role in allowed_roles:
                 return view_func(request, *args, **kwargs)
             return render(request, '403.html', status=403)
-
         return wrapper
-
     return decorator
 
 
 @login_required
 def vacancy_list(request):
+    """Список вакансий с фильтрацией и статистикой"""
     vacancies_list = Vacancy.objects.all().order_by('-created_at')
 
     # ФИЛЬТРАЦИЯ ДЛЯ РЕКРУТЕРА
@@ -51,10 +50,11 @@ def vacancy_list(request):
     if search_query:
         vacancies_list = vacancies_list.filter(title__icontains=search_query)
 
-    # Статистика
+    # Статистика - ИСПРАВЛЕННАЯ ВЕРСИЯ
     total_vacancies = vacancies_list.count()
     open_vacancies = vacancies_list.filter(status='open').count()
     closed_vacancies = vacancies_list.filter(status='closed').count()
+    draft_vacancies = vacancies_list.filter(status='draft').count()
 
     # Пагинация
     paginator = Paginator(vacancies_list, 10)
@@ -76,8 +76,10 @@ def vacancy_list(request):
         'total_vacancies': total_vacancies,
         'open_vacancies': open_vacancies,
         'closed_vacancies': closed_vacancies,
+        'draft_vacancies': draft_vacancies,
         'user_role': user_role,
     })
+
 
 @role_required(['manager', 'admin'])
 def vacancy_create(request):
@@ -85,7 +87,14 @@ def vacancy_create(request):
     if request.method == 'POST':
         form = VacancyForm(request.POST)
         if form.is_valid():
-            vacancy = form.save()
+            # Сохраняем форму с commit=False чтобы установить created_by
+            vacancy = form.save(commit=False)
+            vacancy.created_by = request.user
+            vacancy.save()
+
+            # Если в форме есть поля many-to-many, сохраняем их отдельно
+            form.save_m2m()
+
             messages.success(request, f'Вакансия "{vacancy.title}" успешно создана!')
             return redirect('vacancy_list')
         else:
@@ -100,18 +109,21 @@ def vacancy_create(request):
         'title': 'Создать вакансию'
     })
 
+
 @role_required(['manager', 'admin'])
 def vacancy_edit(request, vacancy_id):
     """Редактирование вакансии"""
     vacancy = get_object_or_404(Vacancy, id=vacancy_id)
 
-    # Проверка прав - только создатель или администратор может редактировать
-    if vacancy.created_by != request.user and request.user.role != 'admin':
+    # УЛУЧШЕННАЯ проверка прав
+    if (hasattr(vacancy, 'created_by') and
+        vacancy.created_by and
+        vacancy.created_by != request.user and
+        request.user.role != 'admin'):
         messages.error(request, "У вас нет прав для редактирования этой вакансии")
         return redirect('vacancy_list')
 
     if request.method == 'POST':
-        # УБРАТЬ request=request - исправленная строка:
         form = VacancyForm(request.POST, instance=vacancy)
         if form.is_valid():
             vacancy = form.save()
@@ -129,6 +141,7 @@ def vacancy_edit(request, vacancy_id):
         'title': f'Редактировать вакансию: {vacancy.title}',
         'vacancy': vacancy
     })
+
 
 @login_required
 def vacancy_detail(request, vacancy_id):
@@ -174,6 +187,7 @@ def vacancy_detail(request, vacancy_id):
         'user_role': user_role,
     })
 
+
 @role_required(['manager', 'admin'])
 def vacancy_delete(request, vacancy_id):
     """Удаление вакансии"""
@@ -197,27 +211,7 @@ def vacancy_delete(request, vacancy_id):
 
 @role_required(['manager', 'admin'])
 def vacancy_change_status(request, vacancy_id, new_status):
-    """Изменение статуса вакансии"""
-    vacancy = get_object_or_404(Vacancy, id=vacancy_id)
-
-    # Проверка прав
-    if vacancy.created_by != request.user and request.user.role != 'admin':
-        messages.error(request, "У вас нет прав для изменения статуса этой вакансии")
-        return redirect('vacancy_list')
-
-    if new_status in ['open', 'closed', 'draft']:
-        vacancy.status = new_status
-        vacancy.save()
-
-        status_display = dict(Vacancy.STATUS_CHOICES).get(new_status)
-        messages.success(request, f'Статус вакансии "{vacancy.title}" изменен на "{status_display}"')
-
-    return redirect('vacancy_detail', vacancy_id=vacancy_id)
-
-
-@role_required(['manager', 'admin'])
-def vacancy_change_status(request, vacancy_id, new_status):
-    """Изменение статуса вакансии"""
+    """Изменение статуса вакансии - ОСТАВЛЕНА ОДНА ФУНКЦИЯ"""
     vacancy = get_object_or_404(Vacancy, id=vacancy_id)
 
     # Проверка прав

@@ -17,90 +17,123 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {% if forms %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ФИО</th>
-                                    <th>Образование</th>
-                                    <th>Статус кандидата</th>
-                                    <th>Проверка ОК</th>
-                                    <th>Дата создания</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for form in forms %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ form.last_name }} {{ form.first_name }} {{ form.patronymic }}</strong>
-                                        {% if form.candidate %}
-                                        <br><small class="text-muted">Кандидат: {{ form.candidate.first_name }} {{ form.candidate.last_name }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ form.get_education_display }}</td>
-                                    <td>
-                                        <span class="badge
-                                            {% if form.candidate_status == 'new' %}bg-secondary
-                                            {% elif form.candidate_status == 'reviewed' %}bg-info
-                                            {% elif form.candidate_status == 'interviewed' %}bg-primary
-                                            {% elif form.candidate_status == 'accepted' %}bg-success
-                                            {% else %}bg-danger{% endif %}">
-                                            {{ form.get_candidate_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if form.is_approved %}
-                                            <span class="badge bg-success">✅ Одобрено</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">⏳ На проверке</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ form.created_at|date:"d.m.Y" }}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            {% if form.candidate %}
-                                            <a href="{% url 'fill_personnel_form' form.candidate.id %}"
-                                               class="btn btn-outline-primary" title="Заполнить анкету">
-                                                📝
-                                            </a>
-                                            <a href="{% url 'candidate_detail' form.candidate.id %}"
-                                               class="btn btn-outline-info" title="Профиль кандидата">
-                                                👁️
-                                            </a>
-                                            {% endif %}
-                                            <a href="{% url 'personnel_form_detail' form.id %}"
-                                               class="btn btn-outline-secondary" title="Просмотр анкеты">
-                                                📄
-                                            </a>
-                                            {% if user.role == 'manager' or user.role == 'admin' %}
-                                                {% if not form.is_approved %}
-                                                <form method="post" action="{% url 'personnel_form_approve' form.id %}" class="d-inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-outline-success"
-                                                            onclick="return confirm('Одобрить анкету {{ form.last_name }} {{ form.first_name }}?')"
-                                                            title="Одобрить">
-                                                        ✅
-                                                    </button>
-                                                </form>
-                                                {% endif %}
-                                                <form method="post" action="{% url 'personnel_form_reject' form.id %}" class="d-inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-outline-danger"
-                                                            onclick="return confirm('Отклонить анкету {{ form.last_name }} {{ form.first_name }}?')"
-                                                            title="Отклонить">
-                                                        ❌
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <!-- ДОБАВЛЕНА КНОПКА СИНХРОНИЗАЦИИ -->
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">🔄 Синхронизация статусов</h6>
+                                <small class="text-muted">
+                                    Обновляет статусы заявок кандидатов в соответствии с их статусами в анкетах
+                                </small>
+                            </div>
+                            <a href="{% url 'sync_all_statuses' %}" class="btn btn-warning">
+                                🔄 Синхронизировать статусы
+                            </a>
+                        </div>
                     </div>
+
+                        {% if candidates %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ФИО</th>
+                                        <th>Email</th>
+                                        <th>Специализация</th>
+                                        <th>Статус анкеты</th>
+                                        <th>Проверка ОК</th>
+                                        <th>Дата создания</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for candidate in candidates %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ candidate.last_name }} {{ candidate.first_name }} {{ candidate.patronymic }}</strong>
+                                        </td>
+                                        <td>{{ candidate.email }}</td>
+                                        <td>{{ candidate.specialization|default:"—" }}</td>
+                                        <td>
+                                            {% if candidate.personnel_form %}
+                                                <span class="badge
+                                                    {% if candidate.personnel_form.candidate_status == 'new' %}bg-secondary
+                                                    {% elif candidate.personnel_form.candidate_status == 'reviewed' %}bg-info
+                                                    {% elif candidate.personnel_form.candidate_status == 'interviewed' %}bg-primary
+                                                    {% elif candidate.personnel_form.candidate_status == 'accepted' %}bg-success
+                                                    {% else %}bg-danger{% endif %}">
+                                                    {{ candidate.personnel_form.get_candidate_status_display }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">📝 Нет анкеты</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if candidate.personnel_form %}
+                                                {% if candidate.personnel_form.candidate_status == 'rejected' %}
+                                                    <span class="badge bg-danger">❌ Отклонено</span>
+                                                {% elif candidate.personnel_form.is_approved %}
+                                                    <span class="badge bg-success">✅ Одобрено</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">⏳ На проверке</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ candidate.created_at|date:"d.m.Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                {% if candidate.personnel_form %}
+                                                <a href="{% url 'fill_personnel_form' candidate.id %}"
+                                                   class="btn btn-outline-primary" title="Заполнить анкету">
+                                                    📝
+                                                </a>
+                                                {% else %}
+                                                <a href="{% url 'link_candidates' %}"
+                                                   class="btn btn-outline-warning" title="Создать анкету">
+                                                    ➕
+                                                </a>
+                                                {% endif %}
+                                                <a href="{% url 'candidate_detail' candidate.id %}"
+                                                   class="btn btn-outline-info" title="Профиль кандидата">
+                                                    👁️
+                                                </a>
+                                                {% if candidate.personnel_form %}
+                                                <a href="{% url 'personnel_form_detail' candidate.personnel_form.id %}"
+                                                   class="btn btn-outline-secondary" title="Просмотр анкеты">
+                                                    📄
+                                                </a>
+                                                {% endif %}
+                                                {% if user.role == 'manager' or user.role == 'admin' %}
+                                                    {% if candidate.personnel_form and not candidate.personnel_form.is_approved and candidate.personnel_form.candidate_status != 'rejected' %}
+                                                    <form method="post" action="{% url 'personnel_form_approve' candidate.personnel_form.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-success"
+                                                                onclick="return confirm('Одобрить анкету {{ candidate.last_name }} {{ candidate.first_name }}?')"
+                                                                title="Одобрить">
+                                                            ✅
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                    {% if candidate.personnel_form and candidate.personnel_form.candidate_status != 'rejected' %}
+                                                    <form method="post" action="{% url 'personnel_form_reject' candidate.personnel_form.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-danger"
+                                                                onclick="return confirm('Отклонить анкету {{ candidate.last_name }} {{ candidate.first_name }}?')"
+                                                                title="Отклонить">
+                                                            ❌
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
 
                     <!-- Пагинация -->
                     {% if forms.has_other_pages %}

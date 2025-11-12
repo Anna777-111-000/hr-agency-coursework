@@ -30,7 +30,9 @@ urlpatterns = [
     path('link-candidates/', views.link_candidates_to_forms, name='link_candidates'),
     path('personnel/forms/<int:candidate_id>/fill/', views.fill_personnel_form, name='fill_personnel_form'),
     path('personnel/candidates/', views.personnel_candidate_list, name='personnel_candidate_list'),
+    # ДОБАВЬТЕ ЭТУ СТРОКУ ДЛЯ СИНХРОНИЗАЦИИ СТАТУСОВ:
+    path('sync-statuses/', views.sync_all_statuses, name='sync_all_statuses'),
 
-    # Аналитика
-    path('analytics/', views.recruitment_analytics, name='recruitment_analytics'),
+    # УДАЛИТЕ эту строку - она дублируется с hr_agency/urls.py
+    # path('analytics/', views.recruitment_analytics, name='recruitment_analytics'),
 ]

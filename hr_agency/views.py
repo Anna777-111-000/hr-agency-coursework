@@ -38,6 +38,7 @@ def home(request):
 
     return render(request, 'home.html', context)
 
+
 @login_required
 def statistics(request):
     """Расширенная страница статистики"""
@@ -62,10 +63,15 @@ def statistics(request):
             vacancy_count=Count('vacancy')
         ).order_by('-candidate_count')[:10]
 
-        # Статистика по вакансиям
+        # Статистика по вакансиям - ДОБАВЛЕНА ОТЛАДКА
         open_vacancies = Vacancy.objects.filter(status='open').count()
         closed_vacancies = Vacancy.objects.filter(status='closed').count()
         draft_vacancies = Vacancy.objects.filter(status='draft').count()
+
+        # ОТЛАДОЧНАЯ ИНФОРМАЦИЯ
+        print(f"DEBUG - Вакансии: открытые={open_vacancies}, закрытые={closed_vacancies}, черновики={draft_vacancies}")
+        all_vacancies = Vacancy.objects.all()
+        print(f"DEBUG - Все вакансии: {[(v.title, v.status) for v in all_vacancies]}")
 
         # Последние отклики
         recent_applications = Application.objects.select_related('candidate', 'vacancy').order_by('-applied_date')[:5]
@@ -77,6 +83,7 @@ def statistics(request):
         popular_skills = []
         open_vacancies = closed_vacancies = draft_vacancies = 0
         recent_applications = []
+        print(f"Ошибка импорта: {e}")
 
     return render(request, 'statistics.html', {
         'candidates_count': candidates_count,
