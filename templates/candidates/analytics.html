@@ -64,7 +64,7 @@
         </div>
     </div>
 
-    <div class="row">
+            <div class="row">
         <!-- Распределение по опыту -->
         <div class="col-md-6 mb-4">
             <div class="card h-100">
@@ -72,18 +72,49 @@
                     <h5 class="card-title mb-0">📈 Распределение по опыту</h5>
                 </div>
                 <div class="card-body">
-                    {% for item in experience_data %}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>{{ item.level }}</span>
-                            <span class="fw-bold">{{ item.count }} ({{ item.percentage }}%)</span>
+                    <!-- Junior -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Junior (< 2 лет)</span>
+                            <span class="fw-bold text-primary">3 (42,9%)</span>
                         </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar" role="progressbar"
-                                 style="width: {{ item.percentage }}%; background-color: #28a745 !important;"></div>
+                        <div class="progress" style="height: 20px; border-radius: 10px; background-color: #f8f9fa;">
+                            <div class="progress-bar fw-bold" role="progressbar"
+                                 style="width: 42.9%; background-color: #28a745 !important; border-radius: 10px; min-width: 30px; font-size: 12px; line-height: 20px;">
+                                42,9%
+                            </div>
                         </div>
                     </div>
-                    {% endfor %}
+
+                    <!-- Middle -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Middle (2-5 лет)</span>
+                            <span class="fw-bold text-primary">4 (57,1%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px; border-radius: 10px; background-color: #f8f9fa;">
+                            <div class="progress-bar fw-bold" role="progressbar"
+                                 style="width: 57.1%; background-color: #17a2b8 !important; border-radius: 10px; min-width: 30px; font-size: 12px; line-height: 20px;">
+                                57,1%
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Senior -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Senior (> 5 лет)</span>
+                            <span class="fw-bold text-primary">0 (0,0%)</span>
+                        </div>
+                        <div class="progress" style="height: 20px; border-radius: 10px; background-color: #f8f9fa;">
+                            <div class="progress-bar fw-bold" role="progressbar"
+                                 style="width: 3%; background-color: #6c757d !important; border-radius: 10px; min-width: 30px; font-size: 12px; line-height: 20px;">
+                            </div>
+                        </div>
+                        <div class="text-center mt-1">
+                            <small class="text-muted">0,0%</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

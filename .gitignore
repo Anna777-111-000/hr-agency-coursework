@@ -44,6 +44,7 @@ build/
 htmlcov/
 .pytest_cache/
 .tox/
+media/
 
 # Jupyter
 .ipynb_checkpoints/
